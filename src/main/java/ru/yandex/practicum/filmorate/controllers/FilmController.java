@@ -39,5 +39,4 @@ public class FilmController {
         log.info("Get request for films");
         return filmRepository.getAllFilms();
     }
-
 }

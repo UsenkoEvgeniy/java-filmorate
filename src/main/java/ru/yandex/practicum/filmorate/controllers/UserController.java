@@ -24,16 +24,14 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        userRepository.addUser(user);
         log.info("Post request for user");
-        return user;
+        return userRepository.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        userRepository.updateUser(user);
         log.info("Put request for user");
-        return user;
+        return userRepository.updateUser(user);
     }
 
    @GetMapping
