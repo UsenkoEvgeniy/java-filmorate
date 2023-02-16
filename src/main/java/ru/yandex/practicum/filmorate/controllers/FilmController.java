@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repositories.FilmRepository;
 
+import javax.validation.Valid;
 import java.util.Collection;
 
 @Slf4j
@@ -19,24 +20,24 @@ import java.util.Collection;
 public class FilmController {
 
     @Autowired
-    private FilmRepository database;
+    private FilmRepository filmRepository;
 
     @PostMapping
-    public Film addFilm(@RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
         log.info("Post request for film");
-        return database.addFilm(film);
+        return filmRepository.addFilm(film);
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Put request for film");
-        return database.updateFilm(film);
+        return filmRepository.updateFilm(film);
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
         log.info("Get request for films");
-        return database.getAllFilms();
+        return filmRepository.getAllFilms();
     }
 
 }

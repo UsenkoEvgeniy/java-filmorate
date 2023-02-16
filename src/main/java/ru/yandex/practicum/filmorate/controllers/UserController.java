@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repositories.UserRepository;
 
+import javax.validation.Valid;
 import java.util.Collection;
 
 @Slf4j
@@ -19,18 +20,18 @@ import java.util.Collection;
 public class UserController {
 
     @Autowired
-    private UserRepository database;
+    private UserRepository userRepository;
 
     @PostMapping
-    public User addUser(@RequestBody User user) {
-        database.addUser(user);
+    public User addUser(@Valid @RequestBody User user) {
+        userRepository.addUser(user);
         log.info("Post request for user");
         return user;
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
-        database.updateUser(user);
+    public User updateUser(@Valid @RequestBody User user) {
+        userRepository.updateUser(user);
         log.info("Put request for user");
         return user;
     }
@@ -38,6 +39,6 @@ public class UserController {
    @GetMapping
     public Collection<User> getAllUsers() {
         log.info("Get request for users");
-        return database.getAllUsers();
+        return userRepository.getAllUsers();
     }
 }
