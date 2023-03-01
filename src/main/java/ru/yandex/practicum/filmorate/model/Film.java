@@ -7,6 +7,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -19,6 +21,7 @@ public class Film {
     private final LocalDate releaseDate;
     @Min(value = 1L, message = "The duration must be positive")
     private final Integer duration;
+    private Set<Integer> likes = new HashSet<>();
 
     @AssertTrue(message = "releaseDate is before 1895.12.28")
     public boolean isReleaseDateAfter() {

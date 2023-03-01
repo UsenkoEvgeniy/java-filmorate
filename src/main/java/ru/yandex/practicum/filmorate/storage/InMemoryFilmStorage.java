@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.repositories;
+package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 @Repository
 @Slf4j
-public class FilmRepositoryImpl implements FilmRepository {
+public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Integer, Film> database = new HashMap<>();
     private Integer id = 1;
 
@@ -39,5 +39,15 @@ public class FilmRepositoryImpl implements FilmRepository {
     @Override
     public Collection<Film> getAllFilms() {
         return database.values();
+    }
+
+    @Override
+    public boolean deleteFilm(Film film) {
+        return database.remove(film.getId()) != null;
+    }
+
+    @Override
+    public Film getById(Integer id) {
+        return database.get(id);
     }
 }
