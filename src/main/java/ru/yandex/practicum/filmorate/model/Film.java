@@ -13,7 +13,7 @@ import java.util.Set;
 @Data
 public class Film {
     public static final LocalDate START_DATE = LocalDate.of(1895, 12, 28);
-    private Integer id;
+    private long id;
     @NotBlank(message = "Name can't be null or empty")
     private final String name;
     @Size(max = 200, message = "Description must be no more than 200 symbols")
@@ -21,7 +21,7 @@ public class Film {
     private final LocalDate releaseDate;
     @Min(value = 1L, message = "The duration must be positive")
     private final Integer duration;
-    private Set<Integer> likes = new HashSet<>();
+    private Set<Long> likes = new HashSet<>();
 
     @AssertTrue(message = "releaseDate is before 1895.12.28")
     public boolean isReleaseDateAfter() {

@@ -23,57 +23,58 @@ public class UserService {
     }
 
     public User addUser(User user) {
-        log.info("Adding user: " + user);
+        log.debug("Adding user: " + user);
         return userStorage.addUser(user);
     }
 
     public User updateUser(User user) {
-        log.info("Updating user: " + user);
+        log.debug("Updating user: " + user);
         return userStorage.updateUser(user);
     }
 
     public Collection<User> getAllUsers() {
-        log.info("Getting all users");
+        log.debug("Getting all users");
         return userStorage.getAllUsers();
     }
 
-    public void addFriend(Integer userId, Integer friendId) {
+    public void addFriend(long userId, long friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
-        log.info("Adding friend: {} to user: {}", friend, user);
+        log.debug("Adding friend: {} to user: {}", friend, user);
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
     }
 
-    public void removeFriend(Integer userId, Integer friendId) {
+    public void removeFriend(long userId, long friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
-        log.info("Removing friend: {} from user: {}", friend, user);
+        log.debug("Removing friend: {} from user: {}", friend, user);
         user.getFriends().remove(friendId);
         friend.getFriends().remove(userId);
     }
 
-    public Collection<User> getCommonFriendsList(Integer userId, Integer friendId) {
+    public Collection<User> getCommonFriendsList(long userId, long friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
-        log.info("Get common friend for friend: {} and user: {}", friend, user);
-        Set<Integer> commonFriends = new HashSet<>(user.getFriends());
+        log.debug("Get common friend for friend: {} and user: {}", friend, user);
+        Set<Long> commonFriends = new HashSet<>(user.getFriends());
         commonFriends.retainAll(friend.getFriends());
         return commonFriends.stream().map(userStorage::getById).collect(Collectors.toList());
     }
 
-    public Collection<User> getFriendsList(Integer userId) {
+    public Collection<User> getFriendsList(long userId) {
         User user = getUserById(userId);
-        log.info("Get list of friends for user {}", user);
+        log.debug("Get list of friends for user {}", user);
         return user.getFriends().stream().map(userStorage::getById).collect(Collectors.toList());
     }
 
-    public User getUserById(Integer id){
+    public User getUserById(long id){
         User user = userStorage.getById(id);
         if (user == null) {
             log.warn("User with id {} doesn't exist", id);
-            throw new UserNotFoundException(id.toString());
+            throw new UserNotFoundException(Long.toString(id));
         }
+        log.debug("Get user with id: {}", id);
         return user;
     }
 }

@@ -47,25 +47,25 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable Integer id) {
+    public User getById(@PathVariable long id) {
         log.info("Get request for user: {}", id);
         return userService.getUserById(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend (@PathVariable Integer id, @PathVariable Integer friendId) {
+    public void addFriend (@PathVariable long id, @PathVariable long friendId) {
         log.info("Put request to add friend id: {} friendId: {}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void removeFriend (@PathVariable Integer id, @PathVariable Integer friendId) {
+    public void removeFriend (@PathVariable long id, @PathVariable long friendId) {
         log.info("Delete request to remove friend id: {} friendId: {}", id, friendId);
         userService.removeFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<User> getFriendsList(@PathVariable Integer id) {
+    public Collection<User> getFriendsList(@PathVariable long id) {
         log.info("Get request for all friends list for user: {}", id);
         return userService.getFriendsList(id);
     }

@@ -15,5 +15,5 @@ public interface FilmStorage {
 
     boolean deleteFilm(Film film);
 
-    Film getById(Integer id);
+    Film getById(long id);
 }
