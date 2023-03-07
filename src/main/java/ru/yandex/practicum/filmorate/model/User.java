@@ -8,11 +8,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @UserNameConstraint
 public class User {
-    private Integer id;
+    private long id;
     @NotBlank(message = "Email can't be null or empty")
     @Email(message = "Incorrect email")
     private final String email;
@@ -21,4 +23,5 @@ public class User {
     private String name;
     @Past(message = "Birthday must be in past")
     private final LocalDate birthday;
+    private Set<Long> friends = new HashSet<>();
 }
