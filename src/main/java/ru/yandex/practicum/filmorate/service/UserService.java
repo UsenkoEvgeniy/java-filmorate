@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.FriendStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage userStorage;
 
-    @Autowired
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
@@ -41,8 +40,8 @@ public class UserService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
         log.debug("Adding friend: {} to user: {}", friend, user);
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        user.getFriends().put(friendId, FriendStatus.APPROVED);
+        friend.getFriends().put(userId, FriendStatus.APPROVED);
     }
 
     public void removeFriend(long userId, long friendId) {
@@ -57,15 +56,15 @@ public class UserService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
         log.debug("Get common friend for friend: {} and user: {}", friend, user);
-        Set<Long> commonFriends = new HashSet<>(user.getFriends());
-        commonFriends.retainAll(friend.getFriends());
+        Set<Long> commonFriends = new HashSet<>(user.getFriends().keySet());
+        commonFriends.retainAll(friend.getFriends().keySet());
         return commonFriends.stream().map(userStorage::getById).collect(Collectors.toList());
     }
 
     public Collection<User> getFriendsList(long userId) {
         User user = getUserById(userId);
         log.debug("Get list of friends for user {}", user);
-        return user.getFriends().stream().map(userStorage::getById).collect(Collectors.toList());
+        return user.getFriends().keySet().stream().map(userStorage::getById).collect(Collectors.toList());
     }
 
     public User getUserById(long id){
