@@ -12,11 +12,12 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class UserValidationTest{
+public class UserValidationTest {
     final String email = "correct@email.com";
     final String login = "CorrectLogin";
     final LocalDate birthDay = LocalDate.of(2000, 1, 1);
     static Validator validator;
+
     @BeforeAll
     public static void setupValidatorInstance() {
         validator = Validation.buildDefaultValidatorFactory().getValidator();

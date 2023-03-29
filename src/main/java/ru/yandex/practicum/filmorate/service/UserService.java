@@ -67,7 +67,7 @@ public class UserService {
         return user.getFriends().keySet().stream().map(userStorage::getById).collect(Collectors.toList());
     }
 
-    public User getUserById(long id){
+    public User getUserById(long id) {
         User user = userStorage.getById(id);
         if (user == null) {
             log.warn("User with id {} doesn't exist", id);

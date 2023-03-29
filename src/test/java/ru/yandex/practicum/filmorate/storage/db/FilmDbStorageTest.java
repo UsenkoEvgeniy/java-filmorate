@@ -65,7 +65,7 @@ class FilmDbStorageTest {
     }
 
     @Test
-    void testGetByWithWrongId(){
+    void testGetByWithWrongId() {
         assertNull(filmStorage.getById(-3));
     }
 }
