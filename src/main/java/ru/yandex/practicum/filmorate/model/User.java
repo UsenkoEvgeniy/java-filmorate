@@ -23,5 +23,5 @@ public class User {
     private String name;
     @Past(message = "Birthday must be in past")
     private final LocalDate birthday;
-    private Map<Long, FriendStatus> friends = new HashMap<>();
+    private Map<Long, String> friends = new HashMap<>();
 }

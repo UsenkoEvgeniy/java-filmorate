@@ -22,8 +22,8 @@ public class Film {
     @Min(value = 1L, message = "The duration must be positive")
     private final Integer duration;
     private Set<Long> likes = new HashSet<>();
-    private Set <Genre> genre;
-    private Rating rating;
+    private Set<Genre> genres = new HashSet<>();
+    private Mpa mpa;
 
     @AssertTrue(message = "releaseDate is before 1895.12.28")
     public boolean isReleaseDateAfter() {
