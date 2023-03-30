@@ -16,7 +16,7 @@ import java.util.Optional;
 @Slf4j
 public class MpaDbStorage implements MpaStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final RowMapper<Mpa> mpaMapper = (rs, rowNum) -> new Mpa(rs.getInt("mpa_id"), rs.getString("mpa_name"));
+    static final RowMapper<Mpa> mpaMapper = (rs, rowNum) -> new Mpa(rs.getInt("mpa_id"), rs.getString("mpa_name"));
 
     public MpaDbStorage(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         jdbcTemplate = namedParameterJdbcTemplate;

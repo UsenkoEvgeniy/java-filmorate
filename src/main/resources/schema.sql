@@ -37,7 +37,7 @@ CREATE TABLE genre (
 CREATE TABLE film_genre (
     film_id BIGINT,
     genre_id INT,
-    CONSTRAINT fk_genre_film_id FOREIGN KEY (film_id) REFERENCES film,
+    CONSTRAINT fk_genre_film_id FOREIGN KEY (film_id) REFERENCES film ON DELETE CASCADE,
     CONSTRAINT fk_genre_id FOREIGN KEY (genre_id) REFERENCES genre
 );
 
@@ -45,13 +45,13 @@ CREATE TABLE user_friends (
     user_id BIGINT,
     friend_id BIGINT,
     status VARCHAR(20),
-    CONSTRAINT fk_friends_user_id FOREIGN KEY (user_id) REFERENCES users,
-    CONSTRAINT fk_friends_friend_id FOREIGN KEY (friend_id) REFERENCES users
+    CONSTRAINT fk_friends_user_id FOREIGN KEY (user_id) REFERENCES users ON DELETE CASCADE,
+    CONSTRAINT fk_friends_friend_id FOREIGN KEY (friend_id) REFERENCES users ON DELETE CASCADE
 );
 
 CREATE TABLE film_likes (
     film_id BIGINT,
     user_id BIGINT,
-    CONSTRAINT fk_likes_film_id  FOREIGN KEY (film_id) REFERENCES film,
-    CONSTRAINT fk_likes_user_id FOREIGN KEY (user_id) REFERENCES users
+    CONSTRAINT fk_likes_film_id  FOREIGN KEY (film_id) REFERENCES film ON DELETE CASCADE,
+    CONSTRAINT fk_likes_user_id FOREIGN KEY (user_id) REFERENCES users ON DELETE CASCADE
 );
