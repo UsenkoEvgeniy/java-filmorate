@@ -31,7 +31,7 @@ import static ru.yandex.practicum.filmorate.storage.db.MpaDbStorage.mpaMapper;
 public class FilmDbStorage implements FilmStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private static final String SELECT_ALL_FILMS_WITH_GENRES_AND_LIKES = "SELECT f.name AS f_name, description, " +
-            "release_date, duration, f.film_id, m.mpa_id, m.mpa_name, g.genre_id, g.name, l.user_id " +
+            "release_date, duration, rate, f.film_id, m.mpa_id, m.mpa_name, g.genre_id, g.name, l.user_id " +
             "FROM film AS f " +
             "LEFT JOIN mpa AS m ON f.mpa_id=m.mpa_id " +
             "LEFT JOIN film_genre AS fg ON f.film_id=fg.film_id " +
@@ -49,6 +49,7 @@ public class FilmDbStorage implements FilmStorage {
                 LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
                 Integer duration = rs.getInt("duration");
                 film = new Film(name, description, releaseDate, duration);
+                film.setRate(rs.getInt("rate"));
                 film.setId(rs.getLong("film_id"));
                 film.setMpa(mpaMapper.mapRow(rs, 0));
                 filmMap.put(filmId, film);
@@ -72,13 +73,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        String sql = "INSERT INTO film(name, description, release_date, duration, mpa_id) VALUES (:name, :desc, :release_date," +
-                " :duration, :mpa)";
+        String sql = "INSERT INTO film(name, description, release_date, duration, rate, mpa_id) VALUES (:name, :desc, :release_date," +
+                " :duration, :rate, :mpa)";
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
                 .addValue("name", film.getName())
                 .addValue("desc", film.getDescription())
                 .addValue("release_date", film.getReleaseDate())
                 .addValue("duration", film.getDuration())
+                .addValue("rate", film.getLikes().size())
                 .addValue("mpa", film.getMpa().getId());
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sql, sqlParameterSource, keyHolder);
@@ -115,13 +117,14 @@ public class FilmDbStorage implements FilmStorage {
             throw new UserNotFoundException("Wrong id");
         }
         String sql = "UPDATE film SET film_id=:id, name=:name, description=:desc, release_date=:release_date, " +
-                "duration=:duration, mpa_id=:mpa WHERE film_id=:id";
+                "duration=:duration, rate=:rate, mpa_id=:mpa WHERE film_id=:id";
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("desc", film.getDescription())
                 .addValue("name", film.getName())
                 .addValue("release_date", film.getReleaseDate())
                 .addValue("duration", film.getDuration())
+                .addValue("rate", film.getLikes().size())
                 .addValue("mpa", film.getMpa().getId());
         jdbcTemplate.update(sql, sqlParameterSource);
         log.debug("Update film with id: " + id);
@@ -152,6 +155,12 @@ public class FilmDbStorage implements FilmStorage {
     public Collection<Film> getAllFilms() {
         log.debug("Getting all films");
         return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_AND_LIKES, filmWithGenresAndLikesExtractor);
+    }
+
+    @Override
+    public Collection<Film> getTopFilms(int size) {
+        log.debug("Getting top " + size + " films");
+        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_AND_LIKES + " ORDER BY rate DESC LIMIT " + size, filmWithGenresAndLikesExtractor);
     }
 
     @Override

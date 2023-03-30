@@ -9,8 +9,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -56,10 +54,7 @@ public class FilmService {
 
     public Collection<Film> getTopFilms(Integer size) {
         log.debug("Get top {} films", size);
-        return filmStorage.getAllFilms().stream()
-                .sorted(Comparator.comparing(film -> film.getLikes().size(), Comparator.reverseOrder()))
-                .limit(size)
-                .collect(Collectors.toList());
+        return filmStorage.getTopFilms(size);
     }
 
     public Film getFilmById(long filmId) {

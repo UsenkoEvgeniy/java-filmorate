@@ -11,6 +11,8 @@ public interface FilmStorage {
 
     Collection<Film> getAllFilms();
 
+    Collection<Film> getTopFilms(int size);
+
     boolean deleteFilm(Film film);
 
     Film getById(long id);

@@ -18,6 +18,7 @@ CREATE TABLE film (
     release_date DATE NOT NULL,
     duration INT NOT NULL,
     mpa_id INT,
+    rate INT,
     CONSTRAINT fk_mpa_id FOREIGN KEY (mpa_id) REFERENCES mpa
 );
 
