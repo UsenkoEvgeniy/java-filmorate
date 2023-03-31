@@ -12,7 +12,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FilmValidationTest{
+public class FilmValidationTest {
     final LocalDate correctDate = LocalDate.of(2000, 4, 4);
     final String name = "Correct name";
     final String description = "Correct description";

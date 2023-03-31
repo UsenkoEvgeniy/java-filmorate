@@ -7,8 +7,10 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 public class Film {
@@ -22,8 +24,9 @@ public class Film {
     @Min(value = 1L, message = "The duration must be positive")
     private final Integer duration;
     private Set<Long> likes = new HashSet<>();
-    private Set <Genre> genre;
-    private Rating rating;
+    private Set<Genre> genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
+    private Mpa mpa;
+    private int rate;
 
     @AssertTrue(message = "releaseDate is before 1895.12.28")
     public boolean isReleaseDateAfter() {

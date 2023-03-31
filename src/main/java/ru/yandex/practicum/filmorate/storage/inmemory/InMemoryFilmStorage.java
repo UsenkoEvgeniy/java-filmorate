@@ -1,14 +1,17 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.inmemory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
-@Repository
+@Repository("inMemory")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> database = new HashMap<>();
@@ -43,6 +46,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Collection<Film> getAllFilms() {
         return database.values();
+    }
+
+    @Override
+    public Collection<Film> getTopFilms(int size) {
+        return getAllFilms().stream()
+                .sorted(Comparator.comparingInt(Film::getRate).reversed())
+                .limit(size)
+                .collect(Collectors.toList());
     }
 
     @Override
