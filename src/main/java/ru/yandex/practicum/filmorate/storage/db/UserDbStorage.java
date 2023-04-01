@@ -47,11 +47,12 @@ public class UserDbStorage implements UserStorage {
         log.debug("User created with id: " + id);
         Map<Long, String> friends = user.getFriends();
         if (friends.size() > 0) {
-            sql = "INSERT INTO user_friends (user_id, friend_id, status) VALUES (" + user.getId() + ", :friend_id, :status)";
+            sql = "INSERT INTO user_friends (user_id, friend_id, status) VALUES (:id, :friend_id, :status)";
             log.debug("Set friends for user: " + id);
             SqlParameterSource[] params = friends.entrySet().stream()
                     .map(friend -> new MapSqlParameterSource().addValue("friend_id", friend.getKey())
-                            .addValue("status", friend.getValue()))
+                                                        .addValue("status", friend.getValue())
+                                                        .addValue("id", user.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -80,10 +81,11 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update("DELETE FROM user_friends WHERE user_id = :id", Map.of("id", user.getId()));
         if (friends.size() > 0) {
             log.debug("Updating friends for user with id: " + id);
-            sql = "INSERT INTO user_friends (user_id, friend_id, status) VALUES (" + user.getId() + ", :friend_id, :status)";
+            sql = "INSERT INTO user_friends (user_id, friend_id, status) VALUES (:id, :friend_id, :status)";
             SqlParameterSource[] params = friends.entrySet().stream()
                     .map(friend -> new MapSqlParameterSource().addValue("friend_id", friend.getKey())
-                            .addValue("status", friend.getValue()))
+                                                            .addValue("status", friend.getValue())
+                                                            .addValue("id", user.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -92,14 +94,19 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAllUsers() {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status FROM users u LEFT JOIN user_friends f ON u.user_id=f.user_id";
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
+                "FROM users u " +
+                "LEFT JOIN user_friends f ON u.user_id=f.user_id";
         log.debug("Getting all users");
         return jdbcTemplate.query(sql, new UserWithFriendsMapper());
     }
 
     @Override
     public User getById(long id) {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status FROM users u LEFT JOIN user_friends f ON u.user_id=f.user_id WHERE u.user_id = :id";
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
+                "FROM users u " +
+                "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
+                "WHERE u.user_id = :id";
         List<User> userList = jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
         if (userList.isEmpty()) {
             log.warn("Nof found user for id: " + id);

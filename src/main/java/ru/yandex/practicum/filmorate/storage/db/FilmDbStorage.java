@@ -17,7 +17,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +38,7 @@ public class FilmDbStorage implements FilmStorage {
             "LEFT JOIN genre AS g ON fg.genre_id=g.genre_id " +
             "LEFT JOIN film_likes AS l ON f.film_id=l.film_id";
     private final ResultSetExtractor<List<Film>> filmWithGenresAndLikesExtractor = rs -> {
-        Map<Long, Film> filmMap = new HashMap<>();
+        Map<Long, Film> filmMap = new LinkedHashMap<>();
         Film film;
         while (rs.next()) {
             Long filmId = rs.getLong("film_id");
@@ -73,8 +73,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        String sql = "INSERT INTO film(name, description, release_date, duration, rate, mpa_id) VALUES (:name, :desc, :release_date," +
-                " :duration, :rate, :mpa)";
+        String sql = "INSERT INTO film(name, description, release_date, duration, rate, mpa_id) " +
+                "VALUES (:name, :desc, :release_date, :duration, :rate, :mpa)";
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
                 .addValue("name", film.getName())
                 .addValue("desc", film.getDescription())
@@ -89,18 +89,20 @@ public class FilmDbStorage implements FilmStorage {
         Set<Long> likes = film.getLikes();
         if (likes != null && !likes.isEmpty()) {
             log.debug("Update likes for film with id: " + id);
-            sql = "INSERT INTO film_likes (film_id, user_id) VALUES (" + id + ", :user)";
+            sql = "INSERT INTO film_likes (film_id, user_id) VALUES (:id, :user)";
             SqlParameterSource[] params = likes.stream()
-                    .map(likeId -> new MapSqlParameterSource().addValue("user", likeId))
+                    .map(likeId -> new MapSqlParameterSource().addValue("user", likeId)
+                                            .addValue("id", id))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
         Set<Genre> genres = film.getGenres();
         if (genres != null && !genres.isEmpty()) {
             log.debug("Update genres for film with id: " + id);
-            sql = "INSERT INTO film_genre (film_id, genre_id) VALUES (" + id + ", :genre)";
+            sql = "INSERT INTO film_genre (film_id, genre_id) VALUES (:id, :genre)";
             SqlParameterSource[] params = genres.stream()
-                    .map(genre -> new MapSqlParameterSource().addValue("genre", genre.getId()))
+                    .map(genre -> new MapSqlParameterSource().addValue("genre", genre.getId())
+                                            .addValue("id", id))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -129,22 +131,24 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, sqlParameterSource);
         log.debug("Update film with id: " + id);
         Set<Long> likes = film.getLikes();
-        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = :id", Map.of("id", id));
+        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id=:id", Map.of("id", id));
         if (likes != null && !likes.isEmpty()) {
-            sql = "INSERT INTO film_likes (film_id, user_id) VALUES (" + id + ", :user)";
+            sql = "INSERT INTO film_likes (film_id, user_id) VALUES(:id, :user)";
             log.debug("Updating likes for film with id: " + id);
             SqlParameterSource[] params = likes.stream()
-                    .map(likeId -> new MapSqlParameterSource().addValue("user", likeId))
+                    .map(likeId -> new MapSqlParameterSource().addValue("user", likeId)
+                                            .addValue("id", id))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
         Set<Genre> genres = film.getGenres();
         jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = :id", Map.of("id", id));
         if (genres != null && !genres.isEmpty()) {
-            sql = "INSERT INTO film_genre (film_id, genre_id) VALUES(" + id + ", :genre)";
+            sql = "INSERT INTO film_genre (film_id, genre_id) VALUES (:id, :genre)";
             log.debug("Updating genres for film with id: " + id);
             SqlParameterSource[] params = genres.stream()
-                    .map(genre -> new MapSqlParameterSource().addValue("genre", genre.getId()))
+                    .map(genre -> new MapSqlParameterSource().addValue("genre", genre.getId())
+                                            .addValue("id", id))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -160,7 +164,9 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> getTopFilms(int size) {
         log.debug("Getting top " + size + " films");
-        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_AND_LIKES + " ORDER BY rate DESC LIMIT " + size, filmWithGenresAndLikesExtractor);
+        String limitTop =" WHERE f.film_id IN (SELECT film_id FROM film ORDER BY rate DESC LIMIT :size) ORDER BY rate DESC";
+        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_AND_LIKES + limitTop, Map.of("size", size),
+                    filmWithGenresAndLikesExtractor);
     }
 
     @Override
