@@ -52,9 +52,9 @@ public class FilmService {
         filmStorage.updateFilm(film);
     }
 
-    public Collection<Film> getTopFilms(Integer size) {
+    public Collection<Film> getTopFilms(Integer size, Integer genreId, Integer year) {
         log.debug("Get top {} films", size);
-        return filmStorage.getTopFilms(size);
+        return filmStorage.getTopFilms(size, genreId, year);
     }
 
     public Film getFilmById(long filmId) {

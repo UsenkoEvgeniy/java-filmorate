@@ -27,6 +27,7 @@ public class Film {
     private Set<Genre> genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
     private Mpa mpa;
     private int rate;
+    private Set<Director> directors = new HashSet<>();
 
     @AssertTrue(message = "releaseDate is before 1895.12.28")
     public boolean isReleaseDateAfter() {
