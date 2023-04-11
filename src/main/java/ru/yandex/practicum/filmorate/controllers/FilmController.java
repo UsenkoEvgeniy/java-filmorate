@@ -64,8 +64,14 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getTopFilms(@RequestParam (defaultValue = "10") Integer count) {
+    public Collection<Film> getTopFilms(@RequestParam(defaultValue = "10") Integer count) {
         log.info("Get request for top {} films", count);
         return filmService.getTopFilms(count);
+    }
+
+    @GetMapping("/director/{id}")
+    public Collection<Film> getFilmForDirector(@PathVariable Long id, @RequestParam String sortBy) {
+        log.info("Get request for films by director with id: {} sorted by {}", id, sortBy);
+        return filmService.getFilmsForDirector(id, sortBy);
     }
 }
