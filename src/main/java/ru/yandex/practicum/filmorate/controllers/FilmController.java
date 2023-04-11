@@ -68,4 +68,9 @@ public class FilmController {
         log.info("Get request for top {} films", count);
         return filmService.getTopFilms(count);
     }
+
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable long filmId) {
+        filmService.deleteFilm(filmId);
+    }
 }

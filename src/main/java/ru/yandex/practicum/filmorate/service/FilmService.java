@@ -66,4 +66,12 @@ public class FilmService {
         log.debug("Get film with id: {}", filmId);
         return film;
     }
+
+    public void deleteFilm(long id) {
+        Film film = filmStorage.getById(id);
+        if (film ==  null) {
+            throw new FilmNotFoundException("Film with id " + id + " not found!");
+        }
+        filmStorage.deleteFilm(film);
+    }
 }
