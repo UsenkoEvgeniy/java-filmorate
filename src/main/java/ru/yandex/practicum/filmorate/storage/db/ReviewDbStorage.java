@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -16,10 +17,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
-public class ReviewDbStorage {
+public class ReviewDbStorage implements ReviewStorage {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Override
     public List<Review> getReviews() {
         SqlRowSet reviewRows = jdbcTemplate.queryForRowSet("SELECT r.id, r.content, r.is_positive, r.user_id, r.film_id,\n" +
                 "SUM(CASE\n" +
@@ -38,15 +40,16 @@ public class ReviewDbStorage {
         return reviews;
     }
 
-    public Review getReviewById(Integer id) {
+    @Override
+    public Review getReviewById(Long id) {
         SqlRowSet reviewRows = jdbcTemplate.queryForRowSet("SELECT r.id, r.content, r.is_positive, r.user_id, r.film_id,\n" +
                 "SUM(CASE\n" +
                 "WHEN rl.is_like IS TRUE THEN 1 \n" +
                 "WHEN rl.is_like IS FALSE THEN -1 " +
                 "ELSE 0 END) AS useful\n" +
                 "FROM review r  \n" +
-                "LEFT JOIN REVIEW_LIKES rl on r.id = rl.review_id \n" +
-                "where r.id = ? " +
+                "LEFT JOIN REVIEW_LIKES rl ON r.id = rl.review_id \n" +
+                "WHERE r.id = ? " +
                 "GROUP BY r.id", id);
         if (reviewRows.next()) {
             return convertSql(reviewRows);
@@ -55,9 +58,10 @@ public class ReviewDbStorage {
         }
     }
 
+    @Override
     public Review addReview(Review review) {
         String sqlQuery = "insert into review(content, is_positive, user_id, film_id) "
-                + "values (?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?)";
         KeyHolder kh = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(sqlQuery, Statement.RETURN_GENERATED_KEYS);
@@ -71,29 +75,31 @@ public class ReviewDbStorage {
         return review;
     }
 
+    @Override
     public Review updateReview(Review review) {
         String sqlQuery = "UPDATE review " +
                 "SET content = ?, is_positive = ? " +
                 "WHERE id = ?";
-        Review review1 = getReviewById(review.getReviewId().intValue());
+        Review review1 = getReviewById(review.getReviewId());
         jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(), review.getReviewId());
-        return getReviewById(review.getReviewId().intValue());
+        return getReviewById(review.getReviewId());
     }
 
-    public Boolean deleteReview(Integer id) {
-        String sqlDelete = "DELETE FROM review where id = ?";
-        jdbcTemplate.update(sqlDelete, id);
-        return true;
+    @Override
+    public Boolean deleteReview(Long id) {
+        String sqlDelete = "DELETE FROM review WHERE id = ?";
+        return jdbcTemplate.update(sqlDelete, id) > 0;
     }
 
-    public List<Review> getMostUsefulReviews(Integer filmId, Integer count) {
+    @Override
+    public List<Review> getMostUsefulReviews(Long filmId, Long count) {
         String sqlUseful = "SELECT r.id, r.content, r.is_positive, r.user_id, r.film_id,\n" +
                 "SUM(CASE\n" +
                 "WHEN rl.IS_LIKE IS TRUE THEN 1 \n" +
                 "WHEN rl.IS_LIKE IS FALSE THEN -1 " +
                 "ELSE 0 END) AS useful\n" +
                 "FROM review r  \n" +
-                "LEFT JOIN REVIEW_LIKES rl on r.id = rl.review_id \n" +
+                "LEFT JOIN REVIEW_LIKES rl ON r.id = rl.review_id \n" +
                 "WHERE r.film_id = ? " +
                 "GROUP BY r.id\n" +
                 "ORDER BY useful DESC ";
@@ -106,54 +112,36 @@ public class ReviewDbStorage {
         return reviewList.stream().limit(count).collect(Collectors.toList());
     }
 
-    public Review likeReview(Integer id, Integer userId) {
-        Review review = getReviewById(id);
-        String sqlCheckReview = "SELECT * FROM review_likes WHERE review_id = ? and user_id = ?";
-        SqlRowSet checkReview = jdbcTemplate.queryForRowSet(sqlCheckReview, id, userId);
-        if (!checkReview.next()) {
-            String sqlInsertLikes = "INSERT INTO review_likes (review_id, user_id, is_like) " + "values (?, ?, ?)";
-            jdbcTemplate.update(sqlInsertLikes, id, userId, true);
-        } else if (!checkReview.getBoolean("is_like")) {
-            String sqlInsertLikes = "UPDATE review_likes SET is_like = ? WHERE review_id = ? and user_id = ?" + "values (?, ?, ?)";
-            jdbcTemplate.update(sqlInsertLikes, true, id, userId);
-        }
-        return review;
+    @Override
+    public Review likeReview(Long id, Long userId) {
+        String sqlInsertLikes = "MERGE INTO review_likes KEY(review_id, user_id) "
+                + "VALUES (?, ?, ?)";
+        jdbcTemplate.update(sqlInsertLikes, id, userId, true);
+        return getReviewById(id);
     }
 
-    public Review dislikeReview(Integer id, Integer userId) {
-        Review review = getReviewById(id);
-        String sqlCheckReview = "SELECT * FROM review_likes WHERE review_id = ? and user_id = ?";
-        SqlRowSet checkReview = jdbcTemplate.queryForRowSet(sqlCheckReview, id, userId);
-        if (!checkReview.next()) {
-            String sqlInsertLikes = "INSERT INTO review_likes (review_id, user_id, is_like) " + "values (?, ?, ?)";
-            jdbcTemplate.update(sqlInsertLikes, id, userId, false);
-        } else if (checkReview.getBoolean("is_like")) {
-            String sqlInsertLikes = "UPDATE review_likes SET is_like = ? WHERE review_id = ? and user_id = ?" + "values (?, ?, ?)";
-            jdbcTemplate.update(sqlInsertLikes, false, id, userId);
-        }
-        return review;
+    @Override
+    public Review dislikeReview(Long id, Long userId) {
+        String sqlInsertLikes = "MERGE INTO review_likes KEY(review_id, user_id) " +
+                "VALUES (?, ?, ?)";
+        jdbcTemplate.update(sqlInsertLikes, id, userId, false);
+        return getReviewById(id);
     }
 
-    public Review deleteLike(Integer id, Integer userId) {
-        Review review = getReviewById(id);
-        String sqlCheckReview = "SELECT * FROM review_likes WHERE review_id = ? and user_id = ?";
-        SqlRowSet checkReview = jdbcTemplate.queryForRowSet(sqlCheckReview, id, userId);
-        if (checkReview.next() && checkReview.getBoolean("is_like")) {
-            String sqlInsertLikes = "DELETE FROM review_likes WHERE review_id = ? ";
-            jdbcTemplate.update(sqlInsertLikes, id);
-        }
-        return review;
+    @Override
+    public Review deleteLike(Long id, Long userId) {
+        String sqlInsertLikes = "DELETE FROM review_likes WHERE review_id = ? " +
+                "AND user_id = ? AND is_like IS TRUE ";
+        jdbcTemplate.update(sqlInsertLikes, id, userId);
+        return getReviewById(id);
     }
 
-    public Review deleteDislike(Integer id, Integer userId) {
-        Review review = getReviewById(id);
-        String sqlCheckReview = "SELECT * FROM review_likes WHERE review_id = ? and user_id = ?";
-        SqlRowSet checkReview = jdbcTemplate.queryForRowSet(sqlCheckReview, id, userId);
-        if (checkReview.next() && !checkReview.getBoolean("is_like")) {
-            String sqlInsertLikes = "DELETE FROM review_likes WHERE review_id = ?";
-            jdbcTemplate.update(sqlInsertLikes, id);
-        }
-        return review;
+    @Override
+    public Review deleteDislike(Long id, Long userId) {
+        String sqlInsertLikes = "DELETE FROM review_likes WHERE review_id = ? " +
+                "AND user_id = ? AND is_like IS FALSE ";
+        jdbcTemplate.update(sqlInsertLikes, id, userId);
+        return getReviewById(id);
     }
 
     private Review convertSql(SqlRowSet rs) {

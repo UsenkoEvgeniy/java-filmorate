@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.storage.db.ReviewDbStorage;
+import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private final ReviewDbStorage reviewDbStorage;
+    private final ReviewStorage reviewDbStorage;
     private final FilmService filmService;
     private final UserService userService;
 
@@ -23,7 +23,7 @@ public class ReviewService {
         return reviewDbStorage.getReviews();
     }
 
-    public Review getReviewById(Integer id) {
+    public Review getReviewById(Long id) {
         log.debug("Got review by id");
         return reviewDbStorage.getReviewById(id);
     }
@@ -46,31 +46,31 @@ public class ReviewService {
         return reviewDbStorage.updateReview(review);
     }
 
-    public Boolean deleteReview(Integer id) {
+    public Boolean deleteReview(Long id) {
         log.debug("Review deleted");
         return reviewDbStorage.deleteReview(id);
     }
 
-    public List<Review> getUsefulReviews(Integer filmId, Integer count) {
+    public List<Review> getUsefulReviews(Long filmId, Long count) {
         return reviewDbStorage.getMostUsefulReviews(filmId, count);
     }
 
-    public Review likeReview(Integer id, Integer userId) {
+    public Review likeReview(Long id, Long userId) {
         log.debug("Review liked");
         return reviewDbStorage.likeReview(id, userId);
     }
 
-    public Review dislikeReview(Integer id, Integer userId) {
+    public Review dislikeReview(Long id, Long userId) {
         log.debug("Review disliked");
         return reviewDbStorage.dislikeReview(id, userId);
     }
 
-    public Review deleteLike(Integer id, Integer userId) {
+    public Review deleteLike(Long id, Long userId) {
         log.debug("Review like deleted");
         return reviewDbStorage.deleteLike(id, userId);
     }
 
-    public Review deleteDislike(Integer id, Integer userId) {
+    public Review deleteDislike(Long id, Long userId) {
         log.debug("Review dislike deleted");
         return reviewDbStorage.deleteDislike(id, userId);
     }
