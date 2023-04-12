@@ -65,4 +65,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film getById(long id) {
         return database.get(id);
     }
+
+    @Override
+    public Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy) {
+        throw new UnsupportedOperationException();
+    }
 }
