@@ -18,4 +18,6 @@ public interface FilmStorage {
     Film getById(long id);
 
     Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy);
+
+    Collection<Film> getSearchResult(String query, String by);
 }

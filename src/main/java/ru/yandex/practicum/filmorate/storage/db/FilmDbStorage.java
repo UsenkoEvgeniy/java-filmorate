@@ -11,19 +11,14 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage.directorMapper;
 import static ru.yandex.practicum.filmorate.storage.db.GenreDbStorage.genreMapper;
@@ -230,6 +225,31 @@ public class FilmDbStorage implements FilmStorage {
         if (films.isEmpty()) {
             throw new NotFoundException("There is now films for director id: " + id);
         }
+        return films;
+    }
+
+    @Override
+    public Collection<Film> getSearchResult(String query, String by) {
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource().addValue("query", "%" + query + "%");
+        Set<String> columns = Set.of(by.split(","));
+        if (!columns.contains("director") && !columns.contains("title")) {
+            throw new ValidationException("Error in search params 'by' = " + by);
+        }
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT * FROM (\n");
+        if (columns.contains("title")) {
+            sql.append(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS);
+            sql.append(" WHERE f.name ILIKE :query\n");
+            if (columns.contains("director")) {
+                sql.append("UNION\n");
+            }
+        }
+        if (columns.contains("director")) {
+            sql.append(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS);
+            sql.append(" WHERE d.director_name ILIKE :query\n");
+        }
+            sql.append(") ORDER BY rate DESC;");
+        Collection<Film> films = jdbcTemplate.query(sql.toString(), mapSqlParameterSource, filmWithGenresAndLikesExtractor);
         return films;
     }
 }
