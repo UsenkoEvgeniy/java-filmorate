@@ -18,8 +18,8 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping
-    public List<Review> getUsefulReviews(@RequestParam(required = false, defaultValue = "0") Integer filmId,
-                                         @RequestParam(required = false, defaultValue = "10") Integer count) {
+    public List<Review> getUsefulReviews(@RequestParam(defaultValue = "0") Integer filmId,
+                                         @RequestParam(defaultValue = "10") Integer count) {
         if (filmId == 0) {
             return reviewService.getReviews();
         }
@@ -42,7 +42,7 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    public Integer deleteReview(@PathVariable Integer id) {
+    public Boolean deleteReview(@PathVariable Integer id) {
         return reviewService.deleteReview(id);
     }
 

@@ -46,7 +46,7 @@ public class ReviewService {
         return reviewDbStorage.updateReview(review);
     }
 
-    public Integer deleteReview(Integer id) {
+    public Boolean deleteReview(Integer id) {
         log.debug("Review deleted");
         return reviewDbStorage.deleteReview(id);
     }
