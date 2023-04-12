@@ -51,8 +51,8 @@ public class DirectorDbStorage implements DirectorStorage {
 
     @Override
     public Director create(Director director) {
-        String sql = "INSERT INTO director(director_name) "
-                + "VALUES(:name)";
+        String sql = "INSERT INTO director(director_name) " +
+                "VALUES(:name)";
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
                 .addValue("name", director.getName());
         KeyHolder keyHolder = new GeneratedKeyHolder();
