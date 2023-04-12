@@ -77,4 +77,9 @@ public class FilmService {
             throw new FilmNotFoundException("Film with id " + id + " not found!");
         }
     }
+
+    public Collection<Film> getSearchResult(String query, String by) {
+        log.debug("Get search request for films with query: {}, for fields {}", query, by);
+        return filmStorage.getSearchResult(query, by);
+    }
 }
