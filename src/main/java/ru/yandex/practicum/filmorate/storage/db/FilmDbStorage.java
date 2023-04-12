@@ -17,13 +17,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage.directorMapper;
 import static ru.yandex.practicum.filmorate.storage.db.GenreDbStorage.genreMapper;
@@ -192,10 +186,24 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getTopFilms(int size) {
+    public Collection<Film> getTopFilms(int size, int genreId, int year) {
         log.debug("Getting top " + size + " films");
-        String limitTop = " WHERE f.film_id IN (SELECT film_id FROM film ORDER BY rate DESC LIMIT :size) ORDER BY rate DESC";
-        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + limitTop, Map.of("size", size),
+        Map<String, Integer> keys = new HashMap<>();
+        keys.put("genreId", genreId);
+        keys.put("size", size);
+        keys.put("year", year);
+        String limitTop = " WHERE f.film_id IN (SELECT film.film_id FROM film ";
+        if (genreId != 0) {
+            limitTop += " LEFT JOIN film_genre USING (film_id) WHERE genre_id = :genreId";
+        }
+        if (genreId != 0 && year != 0) {
+            limitTop += " AND EXTRACT(YEAR FROM f.release_date) = :year";
+        }
+        if (year != 0 && genreId == 0) {
+            limitTop += " WHERE EXTRACT(YEAR FROM f.release_date) = :year";
+        }
+        limitTop += " ORDER BY rate DESC LIMIT :size) ORDER BY rate DESC";
+        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + limitTop, keys,
                 filmWithGenresAndLikesExtractor);
     }
 
