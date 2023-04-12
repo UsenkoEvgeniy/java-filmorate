@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -19,7 +18,6 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.time.LocalDate;
 import java.util.*;
 
-import static ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage.directorMapper;
 import static ru.yandex.practicum.filmorate.storage.db.GenreDbStorage.genreMapper;
 import static ru.yandex.practicum.filmorate.storage.db.MpaDbStorage.mpaMapper;
 
