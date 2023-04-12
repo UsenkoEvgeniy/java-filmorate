@@ -72,6 +72,12 @@ public class FilmService {
         return filmStorage.getFilmsForDirectorSorted(id, sortBy);
     }
 
+    public void deleteFilm(long id) {
+        if (!filmStorage.deleteFilm(filmStorage.getById(id))) {
+            throw new FilmNotFoundException("Film with id " + id + " not found!");
+        }
+    }
+
     public Collection<Film> getSearchResult(String query, String by) {
         log.debug("Get search request for films with query: {}, for fields {}", query, by);
         return filmStorage.getSearchResult(query, by);

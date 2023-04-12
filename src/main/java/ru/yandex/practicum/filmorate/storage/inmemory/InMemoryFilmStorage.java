@@ -73,6 +73,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getSearchResult(String query, String by) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }
