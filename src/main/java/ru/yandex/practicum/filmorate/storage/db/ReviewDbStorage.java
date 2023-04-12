@@ -29,7 +29,7 @@ public class ReviewDbStorage implements ReviewStorage {
                 "WHEN rl.is_like IS FALSE THEN -1 " +
                 "ELSE 0 END) AS useful\n" +
                 "FROM review r  \n" +
-                "LEFT JOIN REVIEW_LIKES rl on r.ID = rl.REVIEW_ID \n" +
+                "LEFT JOIN REVIEW_LIKES rl ON r.ID = rl.REVIEW_ID \n" +
                 "GROUP BY r.ID\n" +
                 "ORDER BY useful DESC ");
         List<Review> reviews = new ArrayList<>();
@@ -60,7 +60,7 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review addReview(Review review) {
-        String sqlQuery = "insert into review(content, is_positive, user_id, film_id) "
+        String sqlQuery = "INSERT INTO review(content, is_positive, user_id, film_id) "
                 + "VALUES (?, ?, ?, ?)";
         KeyHolder kh = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
