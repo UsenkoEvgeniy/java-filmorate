@@ -76,4 +76,10 @@ public class UserService {
         log.debug("Get user with id: {}", id);
         return user;
     }
+
+    public void deleteUser(long id) {
+        if (!userStorage.deleteUser(userStorage.getById(id))) {
+            throw new UserNotFoundException("User with id " + id + " if not found");
+        }
+    }
 }

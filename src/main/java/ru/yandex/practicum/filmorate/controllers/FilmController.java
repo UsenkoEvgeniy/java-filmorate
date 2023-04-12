@@ -60,4 +60,16 @@ public class FilmController {
         log.info("Get request for top {} films", count);
         return filmService.getTopFilms(count);
     }
+
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable long filmId) {
+        log.info("Delete request to remove film with id {}", filmId);
+        filmService.deleteFilm(filmId);
+    }
+
+    @GetMapping("/director/{id}")
+    public Collection<Film> getFilmForDirector(@PathVariable Long id, @RequestParam String sortBy) {
+        log.info("Get request for films by director with id: {} sorted by {}", id, sortBy);
+        return filmService.getFilmsForDirector(id, sortBy);
+    }
 }
