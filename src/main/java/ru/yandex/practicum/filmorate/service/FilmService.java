@@ -67,6 +67,11 @@ public class FilmService {
         return film;
     }
 
+    public Collection<Film> getFilmsForDirector(Long id, String sortBy) {
+        log.debug("Get films by director with id: {} sorted by {}", id, sortBy);
+        return filmStorage.getFilmsForDirectorSorted(id, sortBy);
+    }
+
     public void deleteFilm(long id) {
         if (!filmStorage.deleteFilm(filmStorage.getById(id))) {
             throw new FilmNotFoundException("Film with id " + id + " not found!");
