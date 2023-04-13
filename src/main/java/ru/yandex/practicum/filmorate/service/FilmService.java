@@ -77,4 +77,10 @@ public class FilmService {
             throw new FilmNotFoundException("Film with id " + id + " not found!");
         }
     }
+
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        long uid = userService.getUserById(userId).getId();
+        long fid = userService.getUserById(friendId).getId();
+        return filmStorage.getCommonFilms(uid, fid);
+    }
 }
