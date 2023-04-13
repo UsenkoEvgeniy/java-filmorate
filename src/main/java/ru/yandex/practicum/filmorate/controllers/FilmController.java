@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
 @Slf4j
@@ -56,9 +57,11 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getTopFilms(@RequestParam(defaultValue = "10") Integer count) {
-        log.info("Get request for top {} films", count);
-        return filmService.getTopFilms(count);
+    public Collection<Film> getTopFilms(@RequestParam(defaultValue = "10") Integer count,
+                                        @RequestParam(defaultValue = "0") Integer genreId,
+                                        @RequestParam(defaultValue = "0") Integer year) {
+        log.info("Get request for top {} films , genreId: {}, year: {}", count, genreId, year);
+        return filmService.getTopFilms(count, genreId, year);
     }
 
     @DeleteMapping("/{filmId}")
@@ -71,6 +74,12 @@ public class FilmController {
     public Collection<Film> getFilmForDirector(@PathVariable Long id, @RequestParam String sortBy) {
         log.info("Get request for films by director with id: {} sorted by {}", id, sortBy);
         return filmService.getFilmsForDirector(id, sortBy);
+    }
+
+    @GetMapping("/search")
+    public Collection<Film> getSearchResult(@RequestParam("query") @NotNull String query, @RequestParam("by") @NotNull String by) {
+        log.info("Get search request for films with query: {}, for fields {}", query, by);
+        return filmService.getSearchResult(query, by);
     }
 
     @GetMapping("/common")

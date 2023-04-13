@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -192,10 +193,24 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getTopFilms(int size) {
+    public Collection<Film> getTopFilms(int size, int genreId, int year) {
         log.debug("Getting top " + size + " films");
-        String limitTop = " WHERE f.film_id IN (SELECT film_id FROM film ORDER BY rate DESC LIMIT :size) ORDER BY rate DESC";
-        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + limitTop, Map.of("size", size),
+        Map<String, Integer> keys = new HashMap<>();
+        keys.put("genreId", genreId);
+        keys.put("size", size);
+        keys.put("year", year);
+        String limitTop = " WHERE f.film_id IN (SELECT film.film_id FROM film ";
+        if (genreId != 0) {
+            limitTop += " LEFT JOIN film_genre USING (film_id) WHERE genre_id = :genreId";
+        }
+        if (genreId != 0 && year != 0) {
+            limitTop += " AND EXTRACT(YEAR FROM f.release_date) = :year";
+        }
+        if (year != 0 && genreId == 0) {
+            limitTop += " WHERE EXTRACT(YEAR FROM f.release_date) = :year";
+        }
+        limitTop += " ORDER BY rate DESC LIMIT :size) ORDER BY rate DESC";
+        return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + limitTop, keys,
                 filmWithGenresAndLikesExtractor);
     }
 
@@ -230,6 +245,31 @@ public class FilmDbStorage implements FilmStorage {
         if (films.isEmpty()) {
             throw new NotFoundException("There is now films for director id: " + id);
         }
+        return films;
+    }
+
+    @Override
+    public Collection<Film> getSearchResult(String query, String by) {
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource().addValue("query", "%" + query + "%");
+        Set<String> columns = Set.of(by.split(","));
+        if (!columns.contains("director") && !columns.contains("title")) {
+            throw new ValidationException("Error in search params 'by' = " + by);
+        }
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT * FROM (\n");
+        if (columns.contains("title")) {
+            sql.append(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS);
+            sql.append(" WHERE f.name ILIKE :query\n");
+            if (columns.contains("director")) {
+                sql.append("UNION\n");
+            }
+        }
+        if (columns.contains("director")) {
+            sql.append(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS);
+            sql.append(" WHERE d.director_name ILIKE :query\n");
+        }
+        sql.append(") ORDER BY rate DESC;");
+        Collection<Film> films = jdbcTemplate.query(sql.toString(), mapSqlParameterSource, filmWithGenresAndLikesExtractor);
         return films;
     }
 

@@ -52,9 +52,9 @@ public class FilmService {
         filmStorage.updateFilm(film);
     }
 
-    public Collection<Film> getTopFilms(Integer size) {
+    public Collection<Film> getTopFilms(Integer size, Integer genreId, Integer year) {
         log.debug("Get top {} films", size);
-        return filmStorage.getTopFilms(size);
+        return filmStorage.getTopFilms(size, genreId, year);
     }
 
     public Film getFilmById(long filmId) {
@@ -76,6 +76,11 @@ public class FilmService {
         if (!filmStorage.deleteFilm(filmStorage.getById(id))) {
             throw new FilmNotFoundException("Film with id " + id + " not found!");
         }
+    }
+
+    public Collection<Film> getSearchResult(String query, String by) {
+        log.debug("Get search request for films with query: {}, for fields {}", query, by);
+        return filmStorage.getSearchResult(query, by);
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
