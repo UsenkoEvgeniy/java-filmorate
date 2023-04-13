@@ -269,16 +269,12 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getCommonFilms(long uid, long fid) {
-        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS
-                + " WHERE f.film_id IN ("
-                +       "SELECT u1.film_id "
-                +       "FROM ("
-                +       "SELECT film_id FROM film_likes WHERE user_id = :uid1"
-                +       ") AS u1 "
-                +       "INNER JOIN ( "
-                +       "SELECT film_id FROM film_likes WHERE user_id = :uid2 "
-                +       ") AS u2 ON u1.film_id = u2.film_id "
-                + ") ORDER BY rate DESC;";
+        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS +
+                " WHERE f.film_id IN (" +
+                    "SELECT film_id FROM film_likes WHERE user_id = :uid1 " +
+                    "INTERSECT  " +
+                    "SELECT film_id FROM film_likes WHERE user_id = :uid2 " +
+                 ") ORDER BY rate DESC;";
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
                 .addValue("uid1", uid)
                 .addValue("uid2", fid);
