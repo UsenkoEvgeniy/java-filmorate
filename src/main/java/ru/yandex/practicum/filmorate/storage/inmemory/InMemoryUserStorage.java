@@ -56,4 +56,9 @@ public class InMemoryUserStorage implements UserStorage {
     public boolean deleteUser(User user) {
         return database.remove(user.getId()) != null;
     }
+
+    @Override
+    public Collection<User> getUsersWithCommonTastes(long id) {
+        throw new UnsupportedOperationException();
+    }
 }

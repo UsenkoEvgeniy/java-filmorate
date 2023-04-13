@@ -9,7 +9,9 @@ import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @UserNameConstraint
@@ -24,4 +26,5 @@ public class User {
     @Past(message = "Birthday must be in past")
     private final LocalDate birthday;
     private Map<Long, String> friends = new HashMap<>();
+    private Set<Long> likes = new HashSet<>();
 }

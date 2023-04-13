@@ -17,12 +17,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Repository("UserDbStorage")
 @Slf4j
@@ -51,8 +46,8 @@ public class UserDbStorage implements UserStorage {
             log.debug("Set friends for user: " + id);
             SqlParameterSource[] params = friends.entrySet().stream()
                     .map(friend -> new MapSqlParameterSource().addValue("friend_id", friend.getKey())
-                                                        .addValue("status", friend.getValue())
-                                                        .addValue("id", user.getId()))
+                            .addValue("status", friend.getValue())
+                            .addValue("id", user.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -84,8 +79,8 @@ public class UserDbStorage implements UserStorage {
             sql = "INSERT INTO user_friends (user_id, friend_id, status) VALUES (:id, :friend_id, :status)";
             SqlParameterSource[] params = friends.entrySet().stream()
                     .map(friend -> new MapSqlParameterSource().addValue("friend_id", friend.getKey())
-                                                            .addValue("status", friend.getValue())
-                                                            .addValue("id", user.getId()))
+                            .addValue("status", friend.getValue())
+                            .addValue("id", user.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -94,18 +89,20 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAllUsers() {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l.film_id " +
                 "FROM users u " +
-                "LEFT JOIN user_friends f ON u.user_id=f.user_id";
+                "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
+                "LEFT JOIN film_likes l ON u.user_id=l.user_id";
         log.debug("Getting all users");
         return jdbcTemplate.query(sql, new UserWithFriendsMapper());
     }
 
     @Override
     public User getById(long id) {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l.film_id " +
                 "FROM users u " +
                 "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
+                "LEFT JOIN film_likes l ON u.user_id=l.user_id " +
                 "WHERE u.user_id = :id";
         List<User> userList = jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
         if (userList.isEmpty()) {
@@ -120,6 +117,23 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "DELETE FROM users WHERE user_id = :id";
         log.debug("Delete user with id: " + user.getId());
         return jdbcTemplate.update(sqlQuery, Map.of("id", user.getId())) > 0;
+    }
+
+    @Override
+    public Collection<User> getUsersWithCommonTastes(long id) {
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l.film_id " +
+                "FROM users u " +
+                "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
+                "LEFT JOIN film_likes l ON u.user_id=l.user_id " +
+                "LEFT JOIN (SELECT fl1.user_id, COUNT(fl1.film_id) FROM film_likes fl1 " +
+                            "LEFT JOIN (SELECT * FROM film_likes WHERE user_id =:id) as fl2 ON fl1.film_id = fl2.film_id " +
+                            "GROUP BY fl1.user_id ORDER BY COUNT(fl1.film_id)) " +
+                "as su ON l.user_id = su.user_id " +
+                "WHERE su.user_id <>:id";
+
+        Collection<User> users = jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
+
+        return users;
     }
 
     private static final class UserWithFriendsMapper implements ResultSetExtractor<List<User>> {
@@ -147,6 +161,11 @@ public class UserDbStorage implements UserStorage {
                 Long friendId = rs.getLong("friend_id");
                 if (friendId != 0) {
                     friendMap.put(friendId, rs.getString("status"));
+                }
+                Set<Long> filmSet = user.getLikes();
+                Long filmId = rs.getLong("film_id");
+                if (filmId != 0) {
+                    filmSet.add(filmId);
                 }
             }
             return new ArrayList<>(map.values());

@@ -3,22 +3,25 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
     private final UserStorage userStorage;
+    private final FilmStorage filmStorage;
 
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage) {
+    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, @Qualifier("FilmDbStorage") FilmStorage filmStorage) {
         this.userStorage = userStorage;
+        this.filmStorage = filmStorage;
     }
 
     public User addUser(User user) {
@@ -81,5 +84,65 @@ public class UserService {
         if (!userStorage.deleteUser(userStorage.getById(id))) {
             throw new UserNotFoundException("User with id " + id + " if not found");
         }
+    }
+
+    public List<Film> getRecommendation(long id) {
+        Collection<Long> targetUser = userStorage.getById(id).getLikes();
+        Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
+
+        if(targetUser.isEmpty() || usersWithCommonTastes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        HashMap<User, Collection<Long>> usersWithIntersections = new HashMap<>();
+        HashMap<User, Collection<Long>> usersWithUniques = new HashMap<>();
+
+        Collection<Long> secondaryUserIntersections;
+        Collection<Long> secondaryUserUniques;
+
+        int maxSize = 0;
+        User user = null;
+
+        for(User u : usersWithCommonTastes) {
+            for(Long filmId : u.getLikes()) {
+                secondaryUserUniques = null;
+
+                if(!usersWithIntersections.containsKey(u)) {
+                    secondaryUserIntersections = List.of(filmId);
+                    usersWithIntersections.put(u, secondaryUserIntersections);
+                } else {
+                    secondaryUserIntersections = new ArrayList<>(usersWithIntersections.get(u));
+                    secondaryUserIntersections.add(filmId);
+                    usersWithIntersections.put(u, secondaryUserIntersections);
+                }
+
+                if(!targetUser.contains(filmId)) {
+                    if(!usersWithUniques.containsKey(u)) {
+                        secondaryUserUniques = List.of(filmId);
+                        usersWithUniques.put(u, secondaryUserUniques);
+                    } else {
+                        secondaryUserUniques = usersWithUniques.get(u);
+                        secondaryUserUniques.add(filmId);
+                        usersWithUniques.put(u, secondaryUserUniques);
+                    }
+                }
+
+                if(secondaryUserIntersections.size() > maxSize && secondaryUserUniques != null) {
+                    maxSize = secondaryUserIntersections.size();
+                    user = u;
+                }
+            }
+        }
+
+        if (usersWithUniques.get(user) == null) {
+            return Collections.emptyList();
+        }
+
+        List<Film> films = new ArrayList<>();
+        for(Long filmId : usersWithUniques.get(user)) {
+            films.add(filmStorage.getById(filmId));
+        }
+
+        return films;
     }
 }
