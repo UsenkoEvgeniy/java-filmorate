@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -86,28 +85,22 @@ public class UserService {
         }
     }
 
-    public List<Film> getRecommendation(long id) {
+    public Collection<Film> getRecommendation(long id) {
         Collection<Long> targetUser = userStorage.getById(id).getLikes();
         Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
-
-        if(targetUser.isEmpty() || usersWithCommonTastes.isEmpty()) {
+        if (targetUser.isEmpty() || usersWithCommonTastes.isEmpty()) {
             return Collections.emptyList();
         }
-
-        HashMap<User, Collection<Long>> usersWithIntersections = new HashMap<>();
-        HashMap<User, Collection<Long>> usersWithUniques = new HashMap<>();
-
-        Collection<Long> secondaryUserIntersections;
-        Collection<Long> secondaryUserUniques;
-
+        HashMap<User, List<Long>> usersWithIntersections = new HashMap<>();
+        HashMap<User, List<Long>> usersWithUniques = new HashMap<>();
+        List<Long> secondaryUserIntersections;
+        List<Long> secondaryUserUniques;
         int maxSize = 0;
         User user = null;
-
         for(User u : usersWithCommonTastes) {
-            for(Long filmId : u.getLikes()) {
+            for (Long filmId : u.getLikes()) {
                 secondaryUserUniques = null;
-
-                if(!usersWithIntersections.containsKey(u)) {
+                if (!usersWithIntersections.containsKey(u)) {
                     secondaryUserIntersections = List.of(filmId);
                     usersWithIntersections.put(u, secondaryUserIntersections);
                 } else {
@@ -115,9 +108,8 @@ public class UserService {
                     secondaryUserIntersections.add(filmId);
                     usersWithIntersections.put(u, secondaryUserIntersections);
                 }
-
-                if(!targetUser.contains(filmId)) {
-                    if(!usersWithUniques.containsKey(u)) {
+                if (!targetUser.contains(filmId)) {
+                    if (!usersWithUniques.containsKey(u)) {
                         secondaryUserUniques = List.of(filmId);
                         usersWithUniques.put(u, secondaryUserUniques);
                     } else {
@@ -126,23 +118,16 @@ public class UserService {
                         usersWithUniques.put(u, secondaryUserUniques);
                     }
                 }
-
-                if(secondaryUserIntersections.size() > maxSize && secondaryUserUniques != null) {
+                if (secondaryUserIntersections.size() > maxSize && secondaryUserUniques != null) {
                     maxSize = secondaryUserIntersections.size();
                     user = u;
                 }
             }
         }
-
         if (usersWithUniques.get(user) == null) {
             return Collections.emptyList();
         }
-
-        List<Film> films = new ArrayList<>();
-        for(Long filmId : usersWithUniques.get(user)) {
-            films.add(filmStorage.getById(filmId));
-        }
-
-        return films;
+        User finalUser = user;
+        return filmStorage.getAllFilms().stream().filter(f -> usersWithUniques.get(finalUser).contains(f.getId())).collect(Collectors.toList());
     }
 }

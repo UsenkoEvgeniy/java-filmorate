@@ -125,15 +125,11 @@ public class UserDbStorage implements UserStorage {
                 "FROM users u " +
                 "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
                 "LEFT JOIN film_likes l ON u.user_id=l.user_id " +
-                "LEFT JOIN (SELECT fl1.user_id, COUNT(fl1.film_id) FROM film_likes fl1 " +
-                            "LEFT JOIN (SELECT * FROM film_likes WHERE user_id =:id) as fl2 ON fl1.film_id = fl2.film_id " +
-                            "GROUP BY fl1.user_id ORDER BY COUNT(fl1.film_id)) " +
-                "as su ON l.user_id = su.user_id " +
+                "LEFT JOIN (SELECT fl1.user_id, fl1.film_id FROM film_likes fl1 " +
+                "LEFT JOIN (SELECT * FROM film_likes WHERE user_id =:id) as fl2 ON fl1.film_id = fl2.film_id) as su ON l.user_id = su.user_id " +
                 "WHERE su.user_id <>:id";
 
-        Collection<User> users = jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
-
-        return users;
+        return jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
     }
 
     private static final class UserWithFriendsMapper implements ResultSetExtractor<List<User>> {
