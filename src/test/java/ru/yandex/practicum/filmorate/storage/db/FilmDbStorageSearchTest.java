@@ -24,9 +24,8 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class FilmDbStorageSearchTest {
+class FilmDbStorageSearchTest {
     private EmbeddedDatabase embeddedDatabase;
-    private NamedParameterJdbcTemplate jdbcTemplate;
     private FilmStorage filmStorage;
     private DirectorStorage directorStorage;
     private UserStorage userStorage;
@@ -40,7 +39,7 @@ public class FilmDbStorageSearchTest {
                 .setType(EmbeddedDatabaseType.H2)
                 .setName("testDb")
                 .build();
-        jdbcTemplate = new NamedParameterJdbcTemplate(embeddedDatabase);
+        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(embeddedDatabase);
         directorStorage = new DirectorDbStorage(jdbcTemplate);
         filmStorage = new FilmDbStorage(jdbcTemplate);
         userStorage = new UserDbStorage(jdbcTemplate);
