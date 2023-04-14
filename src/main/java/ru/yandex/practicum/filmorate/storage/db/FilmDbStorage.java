@@ -231,7 +231,7 @@ public class FilmDbStorage implements FilmStorage {
     public Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy) {
         String sortSql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE d.director_id=:id ";
         if (sortBy.equalsIgnoreCase("likes")) {
-            sortSql += " ORDER BY rate";
+            sortSql += " ORDER BY rate DESC";
         } else if (sortBy.equalsIgnoreCase("year")) {
             sortSql += " ORDER BY release_date";
         }
@@ -263,8 +263,7 @@ public class FilmDbStorage implements FilmStorage {
             sql.append(" WHERE d.director_name ILIKE :query\n");
         }
         sql.append(") ORDER BY rate DESC;");
-        Collection<Film> films = jdbcTemplate.query(sql.toString(), mapSqlParameterSource, filmWithGenresAndLikesExtractor);
-        return films;
+        return jdbcTemplate.query(sql.toString(), mapSqlParameterSource, filmWithGenresAndLikesExtractor);
     }
 
     @Override

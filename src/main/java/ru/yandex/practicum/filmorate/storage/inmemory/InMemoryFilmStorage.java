@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-@Repository("inMemory")
+@Repository("inMemoryFilmStorage")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> database = new HashMap<>();

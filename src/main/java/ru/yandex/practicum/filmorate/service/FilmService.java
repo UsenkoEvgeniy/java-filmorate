@@ -6,8 +6,12 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.model.event.EventOperations;
+import ru.yandex.practicum.filmorate.model.event.EventTypes;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.time.Instant;
 import java.util.Collection;
 
 @Service
@@ -15,10 +19,12 @@ import java.util.Collection;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final EventService eventService;
 
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, UserService userService, EventService eventService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.eventService = eventService;
     }
 
     public Film addFilm(Film film) {
@@ -42,6 +48,13 @@ public class FilmService {
         log.debug("Adding like to film: {} from user: {}", film, user);
         film.getLikes().add(userId);
         filmStorage.updateFilm(film);
+        eventService.addEvent(Event.builder()
+                .userId(userId)
+                .entityId(filmId)
+                .eventType(EventTypes.LIKE.name())
+                .operation(EventOperations.ADD.name())
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
     }
 
     public void removeLike(long userId, long filmId) {
@@ -50,6 +63,14 @@ public class FilmService {
         log.debug("Removing like to film: {} from user: {}", film, user);
         film.getLikes().remove(userId);
         filmStorage.updateFilm(film);
+
+        eventService.addEvent(Event.builder()
+                .userId(userId)
+                .entityId(filmId)
+                .eventType(EventTypes.LIKE.name())
+                .operation(EventOperations.REMOVE.name())
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
     }
 
     public Collection<Film> getTopFilms(Integer size, Integer genreId, Integer year) {
