@@ -3,16 +3,16 @@ package ru.yandex.practicum.filmorate.storage.db;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -21,12 +21,9 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@AutoConfigureTestDatabase
 public class FilmDbStorageSearchTest {
     private EmbeddedDatabase embeddedDatabase;
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -34,14 +31,6 @@ public class FilmDbStorageSearchTest {
     private DirectorStorage directorStorage;
     private UserStorage userStorage;
 
-    @Autowired
-    public FilmDbStorageSearchTest(@Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                                   DirectorStorage directorStorage,
-                                   @Qualifier("UserDbStorage") UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.directorStorage = directorStorage;
-        this.userStorage = userStorage;
-    }
 
     @BeforeEach
     void initDb() {
@@ -54,6 +43,7 @@ public class FilmDbStorageSearchTest {
         jdbcTemplate = new NamedParameterJdbcTemplate(embeddedDatabase);
         directorStorage = new DirectorDbStorage(jdbcTemplate);
         filmStorage = new FilmDbStorage(jdbcTemplate);
+        userStorage = new UserDbStorage(jdbcTemplate);
         fillFilmDb();
     }
 
@@ -142,21 +132,30 @@ public class FilmDbStorageSearchTest {
     }
 
     @Test
-    void filmSortingByRateTest() {
-        User user1 = new User("first@user.ru", "user1", LocalDate.now().minusYears(10));
-        user1.setName("user1 name");
-        User user2 = new User("second@main.ru", "user2", LocalDate.now().minusYears(10));
-        user2.setName("user2 name");
-        user1 = userStorage.addUser(user1);
-        user2 = userStorage.addUser(user2);
+    void filmSortingByRateSingleLikeTest() {
+        fillUserDb();
         directorStorage.update(new Director(2L, "Third son"));
-        Film film = filmStorage.getById(1L);
-        film.setMpa(new Mpa(1, null));
-        film.getGenres().add(new Genre(1, null));
-        film.getLikes().add(user1.getId());
+        Film film = filmStorage.getById(3L);
+        film.getLikes().add(1L);
         filmStorage.updateFilm(film);
         Collection<Film> searchResult = filmStorage.getSearchResult("tHirD", "title,director");
         assertEquals(3, searchResult.iterator().next().getId(), "Первым должен быть фильм с id = 3");
         assertEquals(1, searchResult.iterator().next().getRate(), "Первым должен быть фильм с rate = 1");
+    }
+
+    @Test
+    void filmSortingByRateMultipleLikesTest() {
+        fillUserDb();
+        directorStorage.update(new Director(2L, "Third son"));
+        Film film = filmStorage.getById(3L);
+        film.getLikes().add(1L);
+        filmStorage.updateFilm(film);
+        film = filmStorage.getById(2L);
+        film.getLikes().add(1L);
+        film.getLikes().add(2L);
+        filmStorage.updateFilm(film);
+        Collection<Film> searchResult = filmStorage.getSearchResult("tHirD", "title,director");
+        assertEquals(2, searchResult.iterator().next().getId(), "Первым должен быть фильм с id = 2");
+        assertEquals(2, searchResult.iterator().next().getRate(), "Первым должен быть фильм с rate = 2");
     }
 }
