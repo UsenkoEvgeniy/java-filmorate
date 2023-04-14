@@ -82,4 +82,10 @@ public class FilmService {
         log.debug("Get search request for films with query: {}, for fields {}", query, by);
         return filmStorage.getSearchResult(query, by);
     }
+
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        long uid = userService.getUserById(userId).getId();
+        long fid = userService.getUserById(friendId).getId();
+        return filmStorage.getCommonFilms(uid, fid);
+    }
 }

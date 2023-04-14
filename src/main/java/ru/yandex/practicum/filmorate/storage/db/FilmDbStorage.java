@@ -11,8 +11,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -264,6 +264,23 @@ public class FilmDbStorage implements FilmStorage {
         }
         sql.append(") ORDER BY rate DESC;");
         Collection<Film> films = jdbcTemplate.query(sql.toString(), mapSqlParameterSource, filmWithGenresAndLikesExtractor);
+        return films;
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(long uid, long fid) {
+        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS +
+                " WHERE f.film_id IN (" +
+                    "SELECT film_id FROM film_likes WHERE user_id = :uid1 " +
+                    "INTERSECT  " +
+                    "SELECT film_id FROM film_likes WHERE user_id = :uid2 " +
+                 ") ORDER BY rate DESC;";
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
+                .addValue("uid1", uid)
+                .addValue("uid2", fid);
+        Collection<Film> films = jdbcTemplate.query(sql.toString(),
+                mapSqlParameterSource,
+                filmWithGenresAndLikesExtractor);
         return films;
     }
 }
