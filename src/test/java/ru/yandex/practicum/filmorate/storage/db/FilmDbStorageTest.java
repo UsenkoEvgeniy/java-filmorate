@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -24,8 +25,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmDbStorageTest {
 
@@ -35,6 +35,7 @@ class FilmDbStorageTest {
     final UserStorage userStorage;
 
     @Test
+    @Order(1)
     void addFilm() {
         Film film = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
         film.setMpa(new Mpa(1, null));
@@ -50,6 +51,7 @@ class FilmDbStorageTest {
     }
 
     @Test
+    @Order(2)
     void updateFilm() {
 
         Film film = new Film("Updated Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
@@ -61,27 +63,32 @@ class FilmDbStorageTest {
     }
 
     @Test
+    @Order(3)
     void getAllFilms() {
         Collection<Film> films = filmStorage.getAllFilms();
         assertEquals(2, films.size());
     }
 
     @Test
+    @Order(4)
     void deleteFilm() {
         assertTrue(filmStorage.deleteFilm(filmStorage.getById(1)));
     }
 
     @Test
+    @Order(5)
     void getById() {
         assertEquals("Second Movie", filmStorage.getById(2).getName());
     }
 
     @Test
+    @Order(6)
     void testGetByWithWrongId() {
         assertNull(filmStorage.getById(-3));
     }
 
     @Test
+    @Order(7)
     void getTopFilms() {
         User user = new User("a@first.user", "login1", LocalDate.of(2020, 1, 1));
         user.setName("name1");
