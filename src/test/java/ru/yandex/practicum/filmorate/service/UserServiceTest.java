@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,24 +42,20 @@ public class UserServiceTest {
         Film filmWithId1 = filmService.addFilm(generateFilm());
         Film filmWithId2 = filmService.addFilm(generateFilm());
         Film filmWithId3 = filmService.addFilm(generateFilm());
-        Film filmWithId4 = filmService.addFilm(generateFilm());
 
         User userFromDb1 = userService.addUser(generateUser());
         User userFromDb2 = userService.addUser(generateUser());
         User userFromDb3 = userService.addUser(generateUser());
-        User userFromDb4 = userService.addUser(generateUser());
 
         filmService.addLike(userFromDb1.getId(), filmWithId2.getId());
-        filmService.addLike(userFromDb1.getId(), filmWithId4.getId());
+        filmService.addLike(userFromDb1.getId(), filmWithId3.getId());
         filmService.addLike(userFromDb2.getId(), filmWithId1.getId());
-        filmService.addLike(userFromDb2.getId(), filmWithId2.getId());
-        filmService.addLike(userFromDb3.getId(), filmWithId2.getId());
         filmService.addLike(userFromDb3.getId(), filmWithId1.getId());
-        filmService.addLike(userFromDb4.getId(), filmWithId3.getId());
-        filmService.addLike(userFromDb4.getId(), filmWithId4.getId());
-        filmService.addLike(userFromDb4.getId(), filmWithId2.getId());
+        filmService.addLike(userFromDb3.getId(), filmWithId2.getId());
+        filmService.addLike(userFromDb3.getId(), filmWithId3.getId());
 
+        assertEquals(0, userService.getRecommendation(userFromDb3.getId()).size());
         assertEquals(1, userService.getRecommendation(userFromDb1.getId()).size());
-        assertEquals(1, userService.getRecommendation(userFromDb2.getId()).size());
+        assertEquals(2, userService.getRecommendation(userFromDb2.getId()).size());
     }
 }

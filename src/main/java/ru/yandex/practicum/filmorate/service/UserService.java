@@ -88,49 +88,24 @@ public class UserService {
     public Collection<Film> getRecommendation(long id) {
         Collection<Long> targetLikes = userStorage.getById(id).getLikes();
         Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
-        if (targetLikes.isEmpty() || usersWithCommonTastes.isEmpty()) {
-            return Collections.emptyList();
-        }
-        HashMap<User, List<Long>> usersWithIntersections = new HashMap<>();
-        HashMap<User, List<Long>> usersWithUniques = new HashMap<>();
-        List<Long> secondaryUserIntersections;
-        List<Long> secondaryUserUniques;
+        log.debug("Get recommendation for user: {}", id);
+        List<Long> uniqueFilms = null;
         int maxSize = 0;
-        User user = null;
-        for(User u : usersWithCommonTastes) {
-            for (Long filmId : u.getLikes()) {
-                if (!usersWithIntersections.containsKey(u)) {
-                    secondaryUserIntersections = List.of(filmId);
-                    usersWithIntersections.put(u, secondaryUserIntersections);
-                } else if (targetLikes.contains(filmId)){
-                    secondaryUserIntersections = new ArrayList<>(usersWithIntersections.get(u));
-                    secondaryUserIntersections.add(filmId);
-                    usersWithIntersections.put(u, secondaryUserIntersections);
-                } else
-                    secondaryUserIntersections = usersWithIntersections.get(u);
-                if (!targetLikes.contains(filmId)) {
-                    if (!usersWithUniques.containsKey(u)) {
-                        secondaryUserUniques = List.of(filmId);
-                        usersWithUniques.put(u, secondaryUserUniques);
-                    } else {
-                        secondaryUserUniques = new ArrayList<>(usersWithUniques.get(u));
-                        secondaryUserUniques.add(filmId);
-                        usersWithUniques.put(u, secondaryUserUniques);
-                    }
-                } else
-                    secondaryUserUniques = usersWithUniques.get(u);
-                if (secondaryUserIntersections != null && secondaryUserIntersections.size() >= maxSize) {
-                    maxSize = secondaryUserIntersections.size();
-                    if(secondaryUserUniques != null) {
-                        user = u;
-                    }
-                }
+        for (User u : usersWithCommonTastes) {
+            List<Long> intersectionList = new ArrayList<>(u.getLikes());
+            List<Long> uniqueList = new ArrayList<>(u.getLikes());
+            intersectionList.retainAll(targetLikes);
+            uniqueList.removeAll(targetLikes);
+
+            if (intersectionList.size() >= maxSize && uniqueList.size() != 0) {
+                maxSize = intersectionList.size();
+                uniqueFilms = uniqueList;
             }
         }
-        if (usersWithUniques.get(user) == null) {
+        if (uniqueFilms == null) {
             return Collections.emptyList();
         }
-        User finalUser = user;
-        return filmStorage.getAllFilms().stream().filter(f -> usersWithUniques.get(finalUser).contains(f.getId())).collect(Collectors.toList());
+        List<Long> finalUniqueFilms = uniqueFilms;
+        return filmStorage.getAllFilms().stream().filter(f -> finalUniqueFilms.contains(f.getId())).collect(Collectors.toList());
     }
 }
