@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -21,9 +23,12 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
+    private final EventService eventService;
 
-    public UserController(UserService userService) {
+
+    public UserController(UserService userService, EventService eventService) {
         this.userService = userService;
+        this.eventService = eventService;
     }
 
     @PostMapping
@@ -78,5 +83,11 @@ public class UserController {
     public void deleteUser(@PathVariable long userId) {
         log.info("Delete request to remove user with id {}", userId);
         userService.deleteUser(userId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<Event> getUserEvents(@PathVariable Long id) {
+        log.info("Get request for userId {} events", id);
+        return eventService.getUserEvents(id);
     }
 }

@@ -5,8 +5,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.model.event.EventOperations;
+import ru.yandex.practicum.filmorate.model.event.EventTypes;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,9 +20,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
     private final UserStorage userStorage;
+    private final EventService eventService;
 
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage) {
+    public UserService(@Qualifier("UserDbStorage")UserStorage userStorage, EventService eventService) {
         this.userStorage = userStorage;
+        this.eventService = eventService;
     }
 
     public User addUser(User user) {
@@ -42,6 +48,13 @@ public class UserService {
         log.debug("Adding friend: {} to user: {}", friend, user);
         user.getFriends().put(friendId, "Requested");
         userStorage.updateUser(user);
+        eventService.addEvent(Event.builder()
+                .userId(userId)
+                .entityId(friendId)
+                .eventType(EventTypes.FRIEND.name())
+                .operation(EventOperations.ADD.name())
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
     }
 
     public void removeFriend(long userId, long friendId) {
@@ -50,6 +63,13 @@ public class UserService {
         log.debug("Removing friend: {} from user: {}", friend, user);
         user.getFriends().remove(friendId);
         userStorage.updateUser(user);
+        eventService.addEvent(Event.builder()
+                .userId(userId)
+                .entityId(friendId)
+                .eventType(EventTypes.FRIEND.name())
+                .operation(EventOperations.REMOVE.name())
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
     }
 
     public Collection<User> getCommonFriendsList(long userId, long friendId) {
