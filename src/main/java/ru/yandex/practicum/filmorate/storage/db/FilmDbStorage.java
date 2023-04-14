@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -26,6 +27,7 @@ import static ru.yandex.practicum.filmorate.storage.db.MpaDbStorage.mpaMapper;
 
 @Repository("FilmDbStorage")
 @Slf4j
+@Primary
 public class FilmDbStorage implements FilmStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private static final String SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS = "SELECT f.name AS f_name, description, " +
