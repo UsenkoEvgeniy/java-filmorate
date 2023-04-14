@@ -125,9 +125,10 @@ public class UserDbStorage implements UserStorage {
                 "FROM users u " +
                 "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
                 "LEFT JOIN film_likes l1 ON u.user_id=l1.user_id " +
-                "LEFT JOIN (SELECT fl1.user_id, fl1.film_id FROM film_likes fl1 " +
-                "LEFT JOIN (SELECT * FROM film_likes WHERE user_id =:id) as fl2 ON fl1.film_id = fl2.film_id) as l2 ON l1.user_id = l2.user_id " +
-                "WHERE l2.user_id <>:id";
+                "LEFT JOIN (" +
+                "SELECT fl.USER_ID, COUNT(fl.FILM_ID) FROM FILM_LIKES AS fl LEFT JOIN (SELECT * FROM film_likes WHERE USER_ID = 1) " +
+                "AS kak ON fl.film_id = kak.film_id WHERE fl.USER_ID <> kak.USER_ID GROUP BY fl.USER_ID" +
+                ") AS l2 ON u.USER_ID=l2.USER_ID";
         log.debug("Get common likes for id: " + id);
         return jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
     }
