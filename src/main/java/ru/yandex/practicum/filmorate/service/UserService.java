@@ -87,12 +87,12 @@ public class UserService {
 
     public Collection<Film> getRecommendation(long id) {
         User user = userStorage.getById(id);
-        if(user == null) {
+        if (user == null) {
             throw new UserNotFoundException("User with id " + id + " if not found");
         }
         Collection<Long> targetLikes = user.getLikes();
         Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
-        if(targetLikes == null && usersWithCommonTastes == null) {
+        if (targetLikes == null && usersWithCommonTastes == null) {
             return Collections.emptyList();
         }
         log.debug("Get recommendation for user: {}", id);
