@@ -4,14 +4,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -57,5 +58,13 @@ public class UserServiceTest {
         assertEquals(0, userService.getRecommendation(userFromDb3.getId()).size());
         assertEquals(1, userService.getRecommendation(userFromDb1.getId()).size());
         assertEquals(2, userService.getRecommendation(userFromDb2.getId()).size());
+    }
+
+    @Test
+    public void getRecommendationWithWrongId() {
+        Throwable thrown = assertThrows(UserNotFoundException.class, () -> {
+            userService.getRecommendation(-1);
+        });
+        assertEquals("UserID: User with id " + -1 + " if not found", thrown.getMessage());
     }
 }

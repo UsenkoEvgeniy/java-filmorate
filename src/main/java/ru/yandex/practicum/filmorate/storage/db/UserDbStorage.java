@@ -121,14 +121,14 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getUsersWithCommonTastes(long id) {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l.film_id " +
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l1.film_id " +
                 "FROM users u " +
                 "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
-                "LEFT JOIN film_likes l ON u.user_id=l.user_id " +
+                "LEFT JOIN film_likes l1 ON u.user_id=l1.user_id " +
                 "LEFT JOIN (SELECT fl1.user_id, fl1.film_id FROM film_likes fl1 " +
-                "LEFT JOIN (SELECT * FROM film_likes WHERE user_id =:id) as fl2 ON fl1.film_id = fl2.film_id) as su ON l.user_id = su.user_id " +
-                "WHERE su.user_id <>:id";
-
+                "LEFT JOIN (SELECT * FROM film_likes WHERE user_id =:id) as fl2 ON fl1.film_id = fl2.film_id) as l2 ON l1.user_id = l2.user_id " +
+                "WHERE l2.user_id <>:id";
+        log.debug("Get common likes for id: " + id);
         return jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
     }
 

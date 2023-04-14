@@ -86,8 +86,15 @@ public class UserService {
     }
 
     public Collection<Film> getRecommendation(long id) {
-        Collection<Long> targetLikes = userStorage.getById(id).getLikes();
+        User user = userStorage.getById(id);
+        if(user == null) {
+            throw new UserNotFoundException("User with id " + id + " if not found");
+        }
+        Collection<Long> targetLikes = user.getLikes();
         Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
+        if(targetLikes == null && usersWithCommonTastes == null) {
+            return Collections.emptyList();
+        }
         log.debug("Get recommendation for user: {}", id);
         List<Long> uniqueFilms = null;
         int maxSize = 0;
@@ -96,8 +103,7 @@ public class UserService {
             List<Long> uniqueList = new ArrayList<>(u.getLikes());
             intersectionList.retainAll(targetLikes);
             uniqueList.removeAll(targetLikes);
-
-            if (intersectionList.size() >= maxSize && uniqueList.size() != 0) {
+            if (intersectionList.size() > maxSize && uniqueList.size() != 0) {
                 maxSize = intersectionList.size();
                 uniqueFilms = uniqueList;
             }
