@@ -86,9 +86,9 @@ public class UserService {
     }
 
     public Collection<Film> getRecommendation(long id) {
-        Collection<Long> targetUser = userStorage.getById(id).getLikes();
+        Collection<Long> targetLikes = userStorage.getById(id).getLikes();
         Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
-        if (targetUser.isEmpty() || usersWithCommonTastes.isEmpty()) {
+        if (targetLikes.isEmpty() || usersWithCommonTastes.isEmpty()) {
             return Collections.emptyList();
         }
         HashMap<User, List<Long>> usersWithIntersections = new HashMap<>();
@@ -99,28 +99,31 @@ public class UserService {
         User user = null;
         for(User u : usersWithCommonTastes) {
             for (Long filmId : u.getLikes()) {
-                secondaryUserUniques = null;
                 if (!usersWithIntersections.containsKey(u)) {
                     secondaryUserIntersections = List.of(filmId);
                     usersWithIntersections.put(u, secondaryUserIntersections);
-                } else {
+                } else if (targetLikes.contains(filmId)){
                     secondaryUserIntersections = new ArrayList<>(usersWithIntersections.get(u));
                     secondaryUserIntersections.add(filmId);
                     usersWithIntersections.put(u, secondaryUserIntersections);
-                }
-                if (!targetUser.contains(filmId)) {
+                } else
+                    secondaryUserIntersections = usersWithIntersections.get(u);
+                if (!targetLikes.contains(filmId)) {
                     if (!usersWithUniques.containsKey(u)) {
                         secondaryUserUniques = List.of(filmId);
                         usersWithUniques.put(u, secondaryUserUniques);
                     } else {
-                        secondaryUserUniques = usersWithUniques.get(u);
+                        secondaryUserUniques = new ArrayList<>(usersWithUniques.get(u));
                         secondaryUserUniques.add(filmId);
                         usersWithUniques.put(u, secondaryUserUniques);
                     }
-                }
-                if (secondaryUserIntersections.size() > maxSize && secondaryUserUniques != null) {
+                } else
+                    secondaryUserUniques = usersWithUniques.get(u);
+                if (secondaryUserIntersections != null && secondaryUserIntersections.size() >= maxSize) {
                     maxSize = secondaryUserIntersections.size();
-                    user = u;
+                    if(secondaryUserUniques != null) {
+                        user = u;
+                    }
                 }
             }
         }
