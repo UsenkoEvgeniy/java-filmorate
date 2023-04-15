@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -25,10 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CommonFilmsDbStorageTest {
+class CommonFilmsDbStorageTest {
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
-    private final NamedParameterJdbcTemplate jdbcTemplate;
     private static long uid1;
     private static long uid2;
     private static long fid1;
@@ -38,11 +36,9 @@ public class CommonFilmsDbStorageTest {
     @Autowired
     public CommonFilmsDbStorageTest(
             @Qualifier("UserDbStorage")UserStorage userStorage,
-            @Qualifier("FilmDbStorage") FilmStorage filmStorage,
-            NamedParameterJdbcTemplate jdbcTemplate) {
+            @Qualifier("FilmDbStorage") FilmStorage filmStorage) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
-        this.jdbcTemplate = jdbcTemplate;
     }
 
     private void fillFilmUserDb() {
@@ -69,15 +65,9 @@ public class CommonFilmsDbStorageTest {
         uid2 = userStorage.addUser(user2).getId();
     }
 
-    private void clearDb() {
-        String sql = "DELETE FROM film; DELETE FROM users;";
-        jdbcTemplate.getJdbcTemplate().update(sql);
-    }
-
     @Test
     @Order(1)
-    void getCommontFilmsWithoutLikesTest() {
-        clearDb();
+    void getCommonFilmsWithoutLikesTest() {
         fillFilmUserDb();
         Collection<Film> common = filmStorage.getCommonFilms(uid1, uid2);
         assertEquals(0, common.size(), "У пользователей нет общих фильмов");
@@ -122,7 +112,7 @@ public class CommonFilmsDbStorageTest {
 
     @Test
     @Order(5)
-    void getCommonFilmsOneLikeRemoveedTest() {
+    void getCommonFilmsOneLikeRemovedTest() {
         Film film = filmStorage.getById(fid3);
         film.getLikes().remove(uid1);
         filmStorage.updateFilm(film);
