@@ -47,7 +47,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getTopFilms(int size) {
+    public Collection<Film> getTopFilms(int size, int genreId, int year) {
         return getAllFilms().stream()
                 .sorted(Comparator.comparingInt(Film::getRate).reversed())
                 .limit(size)
@@ -71,6 +71,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getSearchResult(String query, String by) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(long uid, long fid) {
         throw new UnsupportedOperationException();
     }
 

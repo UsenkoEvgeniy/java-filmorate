@@ -13,7 +13,7 @@ public interface FilmStorage {
 
     Collection<Film> getAllFilms();
 
-    Collection<Film> getTopFilms(int size);
+    Collection<Film> getTopFilms(int size, int genreId, int year);
 
     boolean deleteFilm(Film film);
 
@@ -22,6 +22,8 @@ public interface FilmStorage {
     Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy);
 
     Collection<Film> getSearchResult(String query, String by);
+
+    Collection<Film> getCommonFilms(long uid, long fid);
 
     List<Film> getSomeById(List<Long> ids);
 }
