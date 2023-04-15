@@ -15,8 +15,8 @@ public class Event {
     @NonNull
     final long timestamp;
     @NonNull
-    final String eventType;
+    final EventTypes eventType;
     @NonNull
-    final String operation;
+    final EventOperations operation;
 }
 

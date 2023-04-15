@@ -59,8 +59,8 @@ class EventDbStorageTest {
         Event event = Event.builder()
                 .userId(userId)
                 .entityId(user2Id)
-                .eventType(EventTypes.FRIEND.name())
-                .operation(EventOperations.ADD.name())
+                .eventType(EventTypes.FRIEND)
+                .operation(EventOperations.ADD)
                 .timestamp(Instant.now().toEpochMilli())
                 .build();
         assertEquals(event.getEventType(), eventStorage.getEventById(1).getEventType(), "ids are diff");
@@ -73,13 +73,13 @@ class EventDbStorageTest {
         System.out.println(eventStorage.getUserEvents(userId));
         assertEquals(eventStorage.getUserEvents(userId).size(), 2, "sizes are diff");
         assertEquals((new ArrayList<>(eventStorage.getUserEvents(userId)))
-                .get(0).getEventType(), "FRIEND", "types are diff");
+                .get(0).getEventType().toString(), "FRIEND", "types are diff");
         assertEquals(eventStorage.getUserEvents(user2Id).size(), 0, "sizes are diff");
     }
 
     @Test
     void getEventById() {
         userService.addFriend(userId, user2Id);
-        assertEquals(eventStorage.getEventById(1).getEventType(), "FRIEND", "types are diff");
+        assertEquals(eventStorage.getEventById(1).getEventType().toString(), "FRIEND", "types are diff");
     }
 }

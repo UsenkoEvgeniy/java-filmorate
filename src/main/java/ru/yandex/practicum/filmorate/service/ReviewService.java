@@ -43,8 +43,8 @@ public class ReviewService {
         eventService.addEvent(Event.builder()
                 .userId(review.getUserId())
                 .entityId(review.getReviewId())
-                .eventType(EventTypes.REVIEW.name())
-                .operation(EventOperations.ADD.name())
+                .eventType(EventTypes.REVIEW)
+                .operation(EventOperations.ADD)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
         log.debug("Review added");
@@ -59,8 +59,8 @@ public class ReviewService {
         eventService.addEvent(Event.builder()
                 .userId(reviewUpdate.getUserId())
                 .entityId(reviewUpdate.getReviewId())
-                .eventType(EventTypes.REVIEW.name())
-                .operation(EventOperations.UPDATE.name())
+                .eventType(EventTypes.REVIEW)
+                .operation(EventOperations.UPDATE)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
         return reviewUpdate;
@@ -71,8 +71,8 @@ public class ReviewService {
         eventService.addEvent(Event.builder()
                 .userId(reviewDbStorage.getReviewById(id).getUserId())
                 .entityId(id)
-                .eventType(EventTypes.REVIEW.name())
-                .operation(EventOperations.REMOVE.name())
+                .eventType(EventTypes.REVIEW)
+                .operation(EventOperations.REMOVE)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
         return reviewDbStorage.deleteReview(id);
@@ -97,8 +97,8 @@ public class ReviewService {
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(id)
-                .eventType(EventTypes.LIKE.name())
-                .operation(EventOperations.REMOVE.name())
+                .eventType(EventTypes.LIKE)
+                .operation(EventOperations.REMOVE)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
         return reviewDbStorage.deleteLike(id, userId);

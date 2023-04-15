@@ -51,8 +51,8 @@ public class FilmService {
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(filmId)
-                .eventType(EventTypes.LIKE.name())
-                .operation(EventOperations.ADD.name())
+                .eventType(EventTypes.LIKE)
+                .operation(EventOperations.ADD)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
     }
@@ -67,8 +67,8 @@ public class FilmService {
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(filmId)
-                .eventType(EventTypes.LIKE.name())
-                .operation(EventOperations.REMOVE.name())
+                .eventType(EventTypes.LIKE)
+                .operation(EventOperations.REMOVE)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
     }

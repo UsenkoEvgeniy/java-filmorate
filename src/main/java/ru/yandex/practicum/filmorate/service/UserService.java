@@ -51,8 +51,8 @@ public class UserService {
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(friendId)
-                .eventType(EventTypes.FRIEND.name())
-                .operation(EventOperations.ADD.name())
+                .eventType(EventTypes.FRIEND)
+                .operation(EventOperations.ADD)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
     }
@@ -66,8 +66,8 @@ public class UserService {
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(friendId)
-                .eventType(EventTypes.FRIEND.name())
-                .operation(EventOperations.REMOVE.name())
+                .eventType(EventTypes.FRIEND)
+                .operation(EventOperations.REMOVE)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
     }
