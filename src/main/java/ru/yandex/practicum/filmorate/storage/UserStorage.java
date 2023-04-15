@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public interface UserStorage {
     User addUser(User user);
@@ -15,5 +17,5 @@ public interface UserStorage {
 
     boolean deleteUser(User user);
 
-    Collection<User> getUsersWithCommonTastes(long id);
+    Map<Long, List<Long>> getUsersWithCommonTastes(long id);
 }

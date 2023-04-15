@@ -8,6 +8,8 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 @Slf4j
@@ -58,7 +60,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> getUsersWithCommonTastes(long id) {
+    public Map<Long, List<Long>> getUsersWithCommonTastes(long id) {
         throw new UnsupportedOperationException();
     }
 }

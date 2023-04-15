@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public interface FilmStorage {
     Film addFilm(Film film);
@@ -20,4 +22,6 @@ public interface FilmStorage {
     Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy);
 
     Collection<Film> getSearchResult(String query, String by);
+
+    List<Film> getSomeById(List<Long> ids);
 }

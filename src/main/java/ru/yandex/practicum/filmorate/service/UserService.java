@@ -2,11 +2,11 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
     private final UserStorage userStorage;
-    private final FilmStorage filmStorage;
+    private final FilmService filmService;
 
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, @Qualifier("FilmDbStorage") FilmStorage filmStorage) {
+    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, @Lazy FilmService filmService) {
         this.userStorage = userStorage;
-        this.filmStorage = filmStorage;
+        this.filmService = filmService;
     }
 
     public User addUser(User user) {
@@ -86,21 +86,20 @@ public class UserService {
     }
 
     public Collection<Film> getRecommendation(long id) {
-        User user = userStorage.getById(id);
-        if (user == null) {
+        if (userStorage.getById(id) == null) {
             throw new UserNotFoundException("User with id " + id + " if not found");
         }
-        Collection<Long> targetLikes = user.getLikes();
-        Collection<User> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
-        if (targetLikes == null && usersWithCommonTastes == null) {
+        Map<Long, List<Long>> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
+        if (usersWithCommonTastes == null || !usersWithCommonTastes.containsKey(id) || usersWithCommonTastes.get(id) == null) {
             return Collections.emptyList();
         }
-        log.debug("Get recommendation for user: {}", id);
+        List<Long> targetLikes = usersWithCommonTastes.get(id);
+        usersWithCommonTastes.remove(id);
         List<Long> uniqueFilms = null;
         int maxSize = 0;
-        for (User u : usersWithCommonTastes) {
-            List<Long> intersectionList = new ArrayList<>(u.getLikes());
-            List<Long> uniqueList = new ArrayList<>(u.getLikes());
+        for (Long u : usersWithCommonTastes.keySet()) {
+            List<Long> intersectionList = new ArrayList<>(usersWithCommonTastes.get(u));
+            List<Long> uniqueList = new ArrayList<>(usersWithCommonTastes.get(u));
             intersectionList.retainAll(targetLikes);
             uniqueList.removeAll(targetLikes);
             if (intersectionList.size() > maxSize && uniqueList.size() != 0) {
@@ -111,7 +110,6 @@ public class UserService {
         if (uniqueFilms == null) {
             return Collections.emptyList();
         }
-        List<Long> finalUniqueFilms = uniqueFilms;
-        return filmStorage.getAllFilms().stream().filter(f -> finalUniqueFilms.contains(f.getId())).collect(Collectors.toList());
+        return filmService.getSomeById(uniqueFilms);
     }
 }

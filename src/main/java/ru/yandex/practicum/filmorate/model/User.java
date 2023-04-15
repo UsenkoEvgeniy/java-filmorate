@@ -26,5 +26,4 @@ public class User {
     @Past(message = "Birthday must be in past")
     private final LocalDate birthday;
     private Map<Long, String> friends = new HashMap<>();
-    private Set<Long> likes = new HashSet<>();
 }

@@ -120,17 +120,28 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public Collection<User> getUsersWithCommonTastes(long id) {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l1.film_id " +
-                "FROM users u " +
-                "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
-                "LEFT JOIN film_likes l1 ON u.user_id=l1.user_id " +
-                "LEFT JOIN (" +
-                "SELECT fl.USER_ID, COUNT(fl.FILM_ID) FROM FILM_LIKES AS fl LEFT JOIN (SELECT * FROM film_likes WHERE USER_ID = 1) " +
-                "AS kak ON fl.film_id = kak.film_id WHERE fl.USER_ID <> kak.USER_ID GROUP BY fl.USER_ID" +
-                ") AS l2 ON u.USER_ID=l2.USER_ID";
+    public Map<Long, List<Long>> getUsersWithCommonTastes(long id) {
+        String sql = "SELECT fl.USER_ID, fl.FILM_ID " +
+                "FROM FILM_LIKES AS fl " +
+                "LEFT JOIN (SELECT * FROM film_likes WHERE USER_ID =:id) AS l ON fl.film_id = l.film_id";
+        List<Map<String, Object>> query = jdbcTemplate.queryForList(sql, Map.of("id", id));
+        if(query.isEmpty()) {
+            return null;
+        }
+        HashMap<Long, List<Long>> map = new HashMap<>();
+        for(Map m : query) {
+            long userId = (Long) m.get("user_id");
+            long filmId = (Long) m.get("film_id");
+            if(!map.containsKey(userId))
+                map.put(userId, List.of(filmId));
+            else {
+                List<Long> ids = new ArrayList<>(map.get(userId));
+                ids.add(filmId);
+                map.put(userId, ids);
+            }
+        }
         log.debug("Get common likes for id: " + id);
-        return jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
+        return map;
     }
 
     private static final class UserWithFriendsMapper implements ResultSetExtractor<List<User>> {
@@ -158,11 +169,6 @@ public class UserDbStorage implements UserStorage {
                 Long friendId = rs.getLong("friend_id");
                 if (friendId != 0) {
                     friendMap.put(friendId, rs.getString("status"));
-                }
-                Set<Long> filmSet = user.getLikes();
-                Long filmId = rs.getLong("film_id");
-                if (filmId != 0) {
-                    filmSet.add(filmId);
                 }
             }
             return new ArrayList<>(map.values());

@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -81,5 +82,9 @@ public class FilmService {
     public Collection<Film> getSearchResult(String query, String by) {
         log.debug("Get search request for films with query: {}, for fields {}", query, by);
         return filmStorage.getSearchResult(query, by);
+    }
+
+    public List<Film> getSomeById(List<Long> ids) {
+        return filmStorage.getSomeById(ids);
     }
 }

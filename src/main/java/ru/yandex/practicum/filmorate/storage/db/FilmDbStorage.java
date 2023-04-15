@@ -220,6 +220,12 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getSomeById(List<Long> ids) {
+        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id IN (:ids)";
+        return jdbcTemplate.query(sql, Map.of("ids", ids), filmWithGenresAndLikesExtractor);
+    }
+
+    @Override
     public Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy) {
         String sortSql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE d.director_id=:id ";
         if (sortBy.equalsIgnoreCase("likes")) {
