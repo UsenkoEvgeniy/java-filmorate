@@ -125,14 +125,14 @@ public class UserDbStorage implements UserStorage {
                 "FROM FILM_LIKES AS fl " +
                 "LEFT JOIN (SELECT * FROM film_likes WHERE USER_ID =:id) AS l ON fl.film_id = l.film_id";
         List<Map<String, Object>> query = jdbcTemplate.queryForList(sql, Map.of("id", id));
-        if(query.isEmpty()) {
+        if (query.isEmpty()) {
             return null;
         }
         HashMap<Long, List<Long>> map = new HashMap<>();
-        for(Map m : query) {
+        for (Map m : query) {
             long userId = (Long) m.get("user_id");
             long filmId = (Long) m.get("film_id");
-            if(!map.containsKey(userId))
+            if (!map.containsKey(userId))
                 map.put(userId, List.of(filmId));
             else {
                 List<Long> ids = new ArrayList<>(map.get(userId));
