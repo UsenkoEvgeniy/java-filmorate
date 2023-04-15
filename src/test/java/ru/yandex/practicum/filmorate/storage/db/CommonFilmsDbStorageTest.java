@@ -4,9 +4,11 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
@@ -19,17 +21,26 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@AutoConfigureTestDatabase
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CommonFilmsDbStorageTest {
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private static long uid1;
+    private static long uid2;
+    private static long fid1;
+    private static long fid2;
+    private static long fid3;
 
+    @Autowired
     public CommonFilmsDbStorageTest(
             @Qualifier("UserDbStorage")UserStorage userStorage,
-            @Qualifier("FilmDbStorage") FilmStorage filmStorage) {
+            @Qualifier("FilmDbStorage") FilmStorage filmStorage,
+            NamedParameterJdbcTemplate jdbcTemplate) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     private void fillFilmUserDb() {
@@ -42,9 +53,9 @@ public class CommonFilmsDbStorageTest {
         Film film3 = new Film("Film3 title", "Third film description", LocalDate.now(), 100);
         film3.setMpa(new Mpa(1, ""));
 
-        filmStorage.addFilm(film1);
-        filmStorage.addFilm(film2);
-        filmStorage.addFilm(film3);
+        fid1 = filmStorage.addFilm(film1).getId();
+        fid2 = filmStorage.addFilm(film2).getId();
+        fid3 = filmStorage.addFilm(film3).getId();
 
         User user1 = new User("first@user.ru", "user1", LocalDate.now().minusYears(10));
         user1.setName("user1 name");
@@ -52,64 +63,69 @@ public class CommonFilmsDbStorageTest {
         User user2 = new User("second@main.ru", "user2", LocalDate.now().minusYears(10));
         user2.setName("user2 name");
 
-        userStorage.addUser(user1);
-        userStorage.addUser(user2);
+        uid1 = userStorage.addUser(user1).getId();
+        uid2 = userStorage.addUser(user2).getId();
+    }
+
+    private void clearDb() {
+        String sql = "DELETE FROM film; DELETE FROM users;";
+        jdbcTemplate.getJdbcTemplate().update(sql);
     }
 
     @Test
     @Order(1)
     void getCommontFilmsWithoutLikesTest() {
+        clearDb();
         fillFilmUserDb();
-        Collection<Film> common = filmStorage.getCommonFilms(1, 2);
+        Collection<Film> common = filmStorage.getCommonFilms(uid1, uid2);
         assertEquals(0, common.size(), "У пользователей нет общих фильмов");
     }
 
     @Test
     @Order(2)
     void getCommonFilmsWithDifferentLikesTest() {
-        Film film1 = filmStorage.getById(1L);
-        film1.getLikes().add(1L);
-        filmStorage.updateFilm(film1);
+        Film film1 = filmStorage.getById(fid1);
+        film1.getLikes().add(uid1);
 
-        Film film2 = filmStorage.getById(2L);
-        film2.getLikes().add(2L);
+        Film film2 = filmStorage.getById(fid2);
+        film2.getLikes().add(uid2);
         filmStorage.updateFilm(film2);
 
-        Collection<Film> common = filmStorage.getCommonFilms(1, 2);
+        Collection<Film> common = filmStorage.getCommonFilms(uid1, uid2);
         assertEquals(0, common.size(), "У пользователей нет общих фильмов");
     }
 
     @Test
     @Order(3)
     void getCommonSingleFilmTest() {
-        Film film = filmStorage.getById(3L);
-        film.getLikes().add(1L);
-        film.getLikes().add(2L);
+        Film film = filmStorage.getById(fid3);
+        film.getLikes().add(uid1);
+        film.getLikes().add(uid2);
         filmStorage.updateFilm(film);
 
-        Collection<Film> common = filmStorage.getCommonFilms(1, 2);
+        Collection<Film> common = filmStorage.getCommonFilms(uid1, uid2);
         assertEquals(1, common.size(), "У пользователей должен быть один общий фильм");
-        assertEquals(3L, common.iterator().next().getId(), "Фильм должен иметь id = 3");
+        assertEquals(fid3, common.iterator().next().getId(), "Фильм должен иметь id = 3");
     }
 
     @Test
     @Order(4)
     void getSeveralCommonFilmsTest() {
-        Film film = filmStorage.getById(2L);
-        film.getLikes().add(1L);
+        Film film = filmStorage.getById(fid2);
+        film.getLikes().add(uid1);
         filmStorage.updateFilm(film);
-        Collection<Film> common = filmStorage.getCommonFilms(1, 2);
+        Collection<Film> common = filmStorage.getCommonFilms(uid1, uid2);
         assertEquals(2, common.size(), "У пользователей должен быть два общих фильма");
     }
 
     @Test
     @Order(5)
     void getCommonFilmsOneLikeRemoveedTest() {
-        Film film = filmStorage.getById(3L);
-        film.getLikes().remove(1L);
+        Film film = filmStorage.getById(fid3);
+        film.getLikes().remove(uid1);
         filmStorage.updateFilm(film);
-        Collection<Film> common = filmStorage.getCommonFilms(1, 2);
+        Collection<Film> common = filmStorage.getCommonFilms(uid1, uid2);
         assertEquals(1, common.size(), "У пользователей должен быть один общий фильм");
-        assertEquals(2L, common.iterator().next().getId(), "Фильм должен иметь id = 2");
+        assertEquals(fid2, common.iterator().next().getId(), "Фильм должен иметь id = 2");
     }
 }
