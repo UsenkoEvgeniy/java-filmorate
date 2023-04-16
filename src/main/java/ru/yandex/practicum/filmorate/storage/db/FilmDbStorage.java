@@ -278,10 +278,9 @@ public class FilmDbStorage implements FilmStorage {
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
                 .addValue("uid1", uid)
                 .addValue("uid2", fid);
-        Collection<Film> films = jdbcTemplate.query(sql.toString(),
+        return jdbcTemplate.query(sql,
                 mapSqlParameterSource,
                 filmWithGenresAndLikesExtractor);
-        return films;
     }
 
     @Override
