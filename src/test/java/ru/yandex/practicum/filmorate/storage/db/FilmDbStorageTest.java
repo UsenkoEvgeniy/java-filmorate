@@ -30,10 +30,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmDbStorageTest {
 
-    final GenreStorage genreStorage;
-    final FilmService filmService;
-    final FilmStorage filmStorage;
-    final UserStorage userStorage;
+    private final GenreStorage genreStorage;
+    private final FilmService filmService;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
     @Test
     void addFilm() {

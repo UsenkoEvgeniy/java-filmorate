@@ -22,13 +22,20 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
     private final UserStorage userStorage;
-    private final FilmService filmService;
+    private FilmService filmService;
     private final EventService eventService;
 
-    public UserService(@Qualifier("UserDbStorage")UserStorage userStorage, EventService eventService,
-                       @Lazy FilmService filmService) {
+
+    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, @Lazy FilmService filmService,
+                       EventService eventService) {
         this.userStorage = userStorage;
         this.filmService = filmService;
+        this.eventService = eventService;
+    }
+
+    public UserService(@Qualifier("UserDbStorage")UserStorage userStorage, EventService eventService) {
+        this.userStorage = userStorage;
+
         this.eventService = eventService;
     }
 
@@ -58,6 +65,8 @@ public class UserService {
                 .entityId(friendId)
                 .eventType(EventTypes.FRIEND)
                 .operation(EventOperations.ADD)
+                .eventType(EventTypes.FRIEND)
+                .operation(EventOperations.ADD)
                 .timestamp(Instant.now().toEpochMilli())
                 .build());
     }
@@ -71,6 +80,8 @@ public class UserService {
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(friendId)
+                .eventType(EventTypes.FRIEND)
+                .operation(EventOperations.REMOVE)
                 .eventType(EventTypes.FRIEND)
                 .operation(EventOperations.REMOVE)
                 .timestamp(Instant.now().toEpochMilli())
