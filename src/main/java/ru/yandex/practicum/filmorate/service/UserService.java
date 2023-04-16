@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.event.Event;
 import ru.yandex.practicum.filmorate.model.event.EventOperations;
@@ -14,16 +16,20 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
     private final UserStorage userStorage;
+    private final FilmService filmService;
     private final EventService eventService;
 
+    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, @Lazy FilmService filmService) {
     public UserService(@Qualifier("UserDbStorage")UserStorage userStorage, EventService eventService) {
         this.userStorage = userStorage;
+        this.filmService = filmService;
         this.eventService = eventService;
     }
 
@@ -99,7 +105,16 @@ public class UserService {
 
     public void deleteUser(long id) {
         if (!userStorage.deleteUser(userStorage.getById(id))) {
-            throw new UserNotFoundException("User with id " + id + " if not found");
+            throw new UserNotFoundException("User with id " + id + " is not found");
         }
+    }
+
+    public Collection<Film> getRecommendation(long id) {
+        if (userStorage.getById(id) == null) {
+            log.warn("User with id {} doesn't exist", id);
+            throw new UserNotFoundException("User with id " + id + " is not found");
+        }
+        log.debug("Getting recommendation films for user " + id);
+        return filmService.getRecommendations(id);
     }
 }
