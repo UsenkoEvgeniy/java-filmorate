@@ -17,12 +17,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Repository("UserDbStorage")
 @Slf4j
@@ -51,8 +46,8 @@ public class UserDbStorage implements UserStorage {
             log.debug("Set friends for user: " + id);
             SqlParameterSource[] params = friends.entrySet().stream()
                     .map(friend -> new MapSqlParameterSource().addValue("friend_id", friend.getKey())
-                                                        .addValue("status", friend.getValue())
-                                                        .addValue("id", user.getId()))
+                            .addValue("status", friend.getValue())
+                            .addValue("id", user.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -84,8 +79,8 @@ public class UserDbStorage implements UserStorage {
             sql = "INSERT INTO user_friends (user_id, friend_id, status) VALUES (:id, :friend_id, :status)";
             SqlParameterSource[] params = friends.entrySet().stream()
                     .map(friend -> new MapSqlParameterSource().addValue("friend_id", friend.getKey())
-                                                            .addValue("status", friend.getValue())
-                                                            .addValue("id", user.getId()))
+                            .addValue("status", friend.getValue())
+                            .addValue("id", user.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
@@ -96,7 +91,7 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> getAllUsers() {
         String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
                 "FROM users u " +
-                "LEFT JOIN user_friends f ON u.user_id=f.user_id";
+                "LEFT JOIN user_friends f ON u.user_id=f.user_id ";
         log.debug("Getting all users");
         return jdbcTemplate.query(sql, new UserWithFriendsMapper());
     }

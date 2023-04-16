@@ -88,4 +88,9 @@ public class FilmService {
         long fid = userService.getUserById(friendId).getId();
         return filmStorage.getCommonFilms(uid, fid);
     }
+
+    public Collection<Film> getRecommendations(long id) {
+        log.debug("Get recommendation films for user " + id);
+        return filmStorage.getRecommendations(id);
+    }
 }
