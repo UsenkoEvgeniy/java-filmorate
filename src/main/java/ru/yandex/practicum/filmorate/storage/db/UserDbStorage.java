@@ -12,13 +12,22 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static ru.yandex.practicum.filmorate.storage.db.FilmDbStorage.SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS;
+import static ru.yandex.practicum.filmorate.storage.db.FilmDbStorage.filmWithGenresAndLikesExtractor;
 
 @Repository("UserDbStorage")
 @Primary
@@ -148,5 +157,17 @@ public class UserDbStorage implements UserStorage {
             }
             return new ArrayList<>(map.values());
         }
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long id) {
+        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id IN (" +
+                "SELECT f.film_id FROM film_likes AS f " +
+                "JOIN (SELECT f3.user_id FROM film_likes AS f2 " +
+                "LEFT JOIN film_likes AS f3 ON f2.film_id=f3.film_id WHERE f2.user_id=:id AND f3.user_id<>f2.user_id " +
+                "GROUP BY f3.user_id ORDER BY COUNT(f3.film_id) DESC LIMIT 1) AS f1 ON f.user_id=f1.user_id " +
+                "WHERE f.film_id NOT IN (SELECT film_id FROM film_likes WHERE user_id=:id))";
+        log.debug("Getting recommendation films for user " + id);
+        return jdbcTemplate.query(sql, Map.of("id", id), filmWithGenresAndLikesExtractor);
     }
 }

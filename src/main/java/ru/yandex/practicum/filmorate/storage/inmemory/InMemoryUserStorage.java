@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.inmemory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -55,5 +56,10 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean deleteUser(User user) {
         return database.remove(user.getId()) != null;
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long id) {
+        throw new UnsupportedOperationException();
     }
 }

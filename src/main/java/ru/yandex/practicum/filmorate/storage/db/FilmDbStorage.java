@@ -12,14 +12,21 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.storage.db.DirectorDbStorage.directorMapper;
 import static ru.yandex.practicum.filmorate.storage.db.GenreDbStorage.genreMapper;
@@ -30,7 +37,7 @@ import static ru.yandex.practicum.filmorate.storage.db.MpaDbStorage.mpaMapper;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private static final String SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS = "SELECT f.name AS f_name, description, " +
+    static final String SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS = "SELECT f.name AS f_name, description, " +
             "release_date, duration, rate, f.film_id, m.mpa_id, m.mpa_name, g.genre_id, g.name, l.user_id, " +
             "d.director_id, d.director_name " +
             "FROM film AS f " +
@@ -40,7 +47,7 @@ public class FilmDbStorage implements FilmStorage {
             "LEFT JOIN film_likes AS l ON f.film_id=l.film_id " +
             "LEFT JOIN director_film AS fd ON f.film_id=fd.film_id " +
             "LEFT JOIN director AS d ON fd.director_id=d.director_id";
-    private final ResultSetExtractor<List<Film>> filmWithGenresAndLikesExtractor = rs -> {
+    static final ResultSetExtractor<List<Film>> filmWithGenresAndLikesExtractor = rs -> {
         Map<Long, Film> filmMap = new LinkedHashMap<>();
         Film film;
         while (rs.next()) {
@@ -282,17 +289,5 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql,
                 mapSqlParameterSource,
                 filmWithGenresAndLikesExtractor);
-    }
-
-    @Override
-    public Collection<Film> getRecommendations(long id) {
-        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id IN (" +
-                "SELECT f.film_id FROM film_likes AS f " +
-                "JOIN (SELECT f3.user_id FROM film_likes AS f2 " +
-                "LEFT JOIN film_likes AS f3 ON f2.film_id=f3.film_id WHERE f2.user_id=:id AND f3.user_id<>f2.user_id " +
-                "GROUP BY f3.user_id ORDER BY COUNT(f3.film_id) DESC LIMIT 1) AS f1 ON f.user_id=f1.user_id " +
-                "WHERE f.film_id NOT IN (SELECT film_id FROM film_likes WHERE user_id=:id))";
-        log.debug("Getting recommendation films for user " + id);
-        return jdbcTemplate.query(sql, Map.of("id", id), filmWithGenresAndLikesExtractor);
     }
 }
