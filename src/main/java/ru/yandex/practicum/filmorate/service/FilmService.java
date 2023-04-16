@@ -90,7 +90,8 @@ public class FilmService {
         return filmStorage.getCommonFilms(uid, fid);
     }
 
-    public List<Film> getSomeById(List<Long> ids) {
-        return filmStorage.getSomeById(ids);
+    public Collection<Film> getRecommendations(long id) {
+        log.debug("Get recommendation films for user " + id);
+        return filmStorage.getRecommendations(id);
     }
 }

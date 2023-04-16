@@ -80,7 +80,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getSomeById(List<Long> ids) {
+    public Collection<Film> getRecommendations(long id) {
         throw new UnsupportedOperationException();
     }
 }

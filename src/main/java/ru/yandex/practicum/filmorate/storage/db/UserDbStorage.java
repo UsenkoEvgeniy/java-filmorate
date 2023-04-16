@@ -119,31 +119,6 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.update(sqlQuery, Map.of("id", user.getId())) > 0;
     }
 
-    @Override
-    public Map<Long, List<Long>> getUsersWithCommonTastes(long id) {
-        String sql = "SELECT fl.USER_ID, fl.FILM_ID " +
-                "FROM FILM_LIKES AS fl " +
-                "LEFT JOIN (SELECT * FROM film_likes WHERE USER_ID =:id) AS l ON fl.film_id = l.film_id";
-        List<Map<String, Object>> query = jdbcTemplate.queryForList(sql, Map.of("id", id));
-        if (query.isEmpty()) {
-            return null;
-        }
-        HashMap<Long, List<Long>> map = new HashMap<>();
-        for (Map m : query) {
-            long userId = (Long) m.get("user_id");
-            long filmId = (Long) m.get("film_id");
-            if (!map.containsKey(userId))
-                map.put(userId, List.of(filmId));
-            else {
-                List<Long> ids = new ArrayList<>(map.get(userId));
-                ids.add(filmId);
-                map.put(userId, ids);
-            }
-        }
-        log.debug("Get common likes for id: " + id);
-        return map;
-    }
-
     private static final class UserWithFriendsMapper implements ResultSetExtractor<List<User>> {
         @Override
         public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {

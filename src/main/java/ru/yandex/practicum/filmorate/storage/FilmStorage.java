@@ -24,5 +24,5 @@ public interface FilmStorage {
 
     Collection<Film> getCommonFilms(long uid, long fid);
 
-    List<Film> getSomeById(List<Long> ids);
+    Collection<Film> getRecommendations(long id);
 }

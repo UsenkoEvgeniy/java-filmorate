@@ -87,29 +87,10 @@ public class UserService {
 
     public Collection<Film> getRecommendation(long id) {
         if (userStorage.getById(id) == null) {
-            throw new UserNotFoundException("User with id " + id + " if not found");
+            log.warn("User with id {} doesn't exist", id);
+            throw new UserNotFoundException("User with id " + id + " is not found");
         }
-        Map<Long, List<Long>> usersWithCommonTastes = userStorage.getUsersWithCommonTastes(id);
-        if (usersWithCommonTastes == null || !usersWithCommonTastes.containsKey(id) || usersWithCommonTastes.get(id) == null) {
-            return Collections.emptyList();
-        }
-        List<Long> targetLikes = usersWithCommonTastes.get(id);
-        usersWithCommonTastes.remove(id);
-        List<Long> uniqueFilms = null;
-        int maxSize = 0;
-        for (Long u : usersWithCommonTastes.keySet()) {
-            List<Long> intersectionList = new ArrayList<>(usersWithCommonTastes.get(u));
-            List<Long> uniqueList = new ArrayList<>(usersWithCommonTastes.get(u));
-            intersectionList.retainAll(targetLikes);
-            uniqueList.removeAll(targetLikes);
-            if (intersectionList.size() > maxSize && uniqueList.size() != 0) {
-                maxSize = intersectionList.size();
-                uniqueFilms = uniqueList;
-            }
-        }
-        if (uniqueFilms == null) {
-            return Collections.emptyList();
-        }
-        return filmService.getSomeById(uniqueFilms);
+        log.debug("Getting recommendation films for user " + id);
+        return filmService.getRecommendations(id);
     }
 }

@@ -228,12 +228,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getSomeById(List<Long> ids) {
-        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id IN (:ids)";
-        return jdbcTemplate.query(sql, Map.of("ids", ids), filmWithGenresAndLikesExtractor);
-    }
-
-    @Override
     public Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy) {
         String sortSql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE d.director_id=:id ";
         if (sortBy.equalsIgnoreCase("likes")) {
@@ -288,5 +282,17 @@ public class FilmDbStorage implements FilmStorage {
                 mapSqlParameterSource,
                 filmWithGenresAndLikesExtractor);
         return films;
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long id) {
+        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id IN (" +
+                "SELECT f.film_id FROM film_likes AS f " +
+                "JOIN (SELECT f3.user_id FROM film_likes AS f2 " +
+                "LEFT JOIN film_likes AS f3 ON f2.film_id=f3.film_id WHERE f2.user_id=:id AND f3.user_id<>f2.user_id " +
+                "GROUP BY f3.user_id ORDER BY COUNT(f3.film_id) DESC LIMIT 1) AS f1 ON f.user_id=f1.user_id " +
+                "WHERE f.film_id NOT IN (SELECT film_id FROM film_likes WHERE user_id=:id))";
+        log.debug("Getting recommendation films for user " + id);
+        return jdbcTemplate.query(sql, Map.of("id", id), filmWithGenresAndLikesExtractor);
     }
 }

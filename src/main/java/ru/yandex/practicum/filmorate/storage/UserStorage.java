@@ -16,6 +16,4 @@ public interface UserStorage {
     User getById(long id);
 
     boolean deleteUser(User user);
-
-    Map<Long, List<Long>> getUsersWithCommonTastes(long id);
 }
