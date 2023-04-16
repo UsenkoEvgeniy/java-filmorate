@@ -81,7 +81,7 @@ public class UserService {
 
     public void deleteUser(long id) {
         if (!userStorage.deleteUser(userStorage.getById(id))) {
-            throw new UserNotFoundException("User with id " + id + " if not found");
+            throw new UserNotFoundException("User with id " + id + " is not found");
         }
     }
 
