@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
-public class UserServiceTest {
+class UserServiceTest {
     final FilmService filmService;
     final UserService userService;
 
     @Autowired
-    UserServiceTest(UserService userService, FilmService filmService) {
+    public UserServiceTest(UserService userService, FilmService filmService) {
         this.filmService = filmService;
         this.userService = userService;
     }
