@@ -93,7 +93,7 @@ CREATE TABLE event  (
     user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
     entity_id BIGINT,
     time_stamp BIGINT,
-    event_type varchar(6),
-    operation varchar(6)
+    event_type VARCHAR(6),
+    operation VARCHAR(6)
 )
 
