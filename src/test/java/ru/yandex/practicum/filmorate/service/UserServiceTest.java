@@ -21,25 +21,25 @@ public class UserServiceTest {
     final UserService userService;
 
     @Autowired
-    public UserServiceTest(UserService userService, FilmService filmService) {
+    UserServiceTest(UserService userService, FilmService filmService) {
         this.filmService = filmService;
         this.userService = userService;
     }
 
-    public Film generateFilm() {
+    Film generateFilm() {
         Film film = new Film("Test Movie", "Test desc", LocalDate.of(2020, 3, 1), 120);
         film.setMpa(new Mpa(1, null));
         return film;
     }
 
-    public User generateUser() {
+    User generateUser() {
         User user = new User("b@test.user", "testLogin", LocalDate.of(2020, 2, 2));
         user.setName("testName");
         return user;
     }
 
     @Test
-    public void getRecommendation() {
+    void getRecommendation() {
         Film filmWithId1 = filmService.addFilm(generateFilm());
         Film filmWithId2 = filmService.addFilm(generateFilm());
         Film filmWithId3 = filmService.addFilm(generateFilm());
@@ -61,7 +61,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void getRecommendationWithWrongId() {
+    void getRecommendationWithWrongId() {
         Throwable thrown = assertThrows(UserNotFoundException.class, () -> {
             userService.getRecommendation(-1);
         });
