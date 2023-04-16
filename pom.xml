@@ -51,7 +51,6 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <useFile>false</useFile>
                     <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
