@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.model.event.EventOperations;
+import ru.yandex.practicum.filmorate.model.event.EventTypes;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -16,6 +20,7 @@ public class ReviewService {
     private final ReviewStorage reviewDbStorage;
     private final FilmService filmService;
     private final UserService userService;
+    private final EventService eventService;
 
 
     public List<Review> getReviews() {
@@ -35,6 +40,13 @@ public class ReviewService {
         userService.getUserById(review.getUserId());
         filmService.getFilmById(review.getFilmId());
         reviewDbStorage.addReview(review);
+        eventService.addEvent(Event.builder()
+                .userId(review.getUserId())
+                .entityId(review.getReviewId())
+                .eventType(EventTypes.REVIEW)
+                .operation(EventOperations.ADD)
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
         log.debug("Review added");
         return review;
     }
@@ -43,11 +55,26 @@ public class ReviewService {
         userService.getUserById(review.getUserId());
         filmService.getFilmById(review.getFilmId());
         log.debug("Review updated");
-        return reviewDbStorage.updateReview(review);
+        Review reviewUpdate = reviewDbStorage.updateReview(review);
+        eventService.addEvent(Event.builder()
+                .userId(reviewUpdate.getUserId())
+                .entityId(reviewUpdate.getReviewId())
+                .eventType(EventTypes.REVIEW)
+                .operation(EventOperations.UPDATE)
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
+        return reviewUpdate;
     }
 
     public Boolean deleteReview(Long id) {
         log.debug("Review deleted");
+        eventService.addEvent(Event.builder()
+                .userId(reviewDbStorage.getReviewById(id).getUserId())
+                .entityId(id)
+                .eventType(EventTypes.REVIEW)
+                .operation(EventOperations.REMOVE)
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
         return reviewDbStorage.deleteReview(id);
     }
 
@@ -67,6 +94,13 @@ public class ReviewService {
 
     public Review deleteLike(Long id, Long userId) {
         log.debug("Review like deleted");
+        eventService.addEvent(Event.builder()
+                .userId(userId)
+                .entityId(id)
+                .eventType(EventTypes.LIKE)
+                .operation(EventOperations.REMOVE)
+                .timestamp(Instant.now().toEpochMilli())
+                .build());
         return reviewDbStorage.deleteLike(id, userId);
     }
 

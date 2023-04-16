@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@Primary
 @Slf4j
 public class MpaDbStorage implements MpaStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;

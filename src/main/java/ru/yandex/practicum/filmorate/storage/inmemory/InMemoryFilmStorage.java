@@ -6,10 +6,12 @@ import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
-@Repository("inMemory")
+@Repository("inMemoryFilmStorage")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> database = new HashMap<>();
@@ -76,11 +78,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getCommonFilms(long uid, long fid) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<Film> getRecommendations(long id) {
         throw new UnsupportedOperationException();
     }
 }
