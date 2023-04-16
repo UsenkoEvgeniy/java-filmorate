@@ -1,11 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -20,11 +20,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@AutoConfigureTestDatabase
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmDbStorageTest {
 
@@ -34,69 +36,82 @@ class FilmDbStorageTest {
     final UserStorage userStorage;
 
     @Test
-    @Order(1)
     void addFilm() {
         Film film = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
         film.setMpa(new Mpa(1, null));
         Film filmWithId = filmStorage.addFilm(film);
-        assertEquals(1, filmWithId.getId());
+        assertEquals(film.getName(), filmWithId.getName());
         assertEquals("G", filmWithId.getMpa().getName());
 
         Film film2 = new Film("Second Movie", "Second desc", LocalDate.of(2020, 3, 2), 220);
         film2.setMpa(new Mpa(2, null));
         Film filmWithId2 = filmStorage.addFilm(film2);
-        assertEquals(2, filmWithId2.getId());
+        assertEquals(film2.getName(), filmWithId2.getName());
         assertEquals("PG", filmWithId2.getMpa().getName());
     }
 
     @Test
-    @Order(2)
     void updateFilm() {
+        Film filmZero = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
+        filmZero.setMpa(new Mpa(1, null));
+        Film filmId = filmStorage.addFilm(filmZero);
 
         Film film = new Film("Updated Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
         film.setMpa(new Mpa(1, null));
-        film.setId(1);
+        film.setId(filmId.getId());
         Film filmFromDb = filmStorage.updateFilm(film);
-        assertEquals(1, filmFromDb.getId());
+        assertEquals(filmId.getId(), filmFromDb.getId());
         assertEquals(film.getName(), filmFromDb.getName());
     }
 
     @Test
-    @Order(3)
     void getAllFilms() {
+        Film film = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
+        film.setMpa(new Mpa(1, null));
+        Film filmFromDb1 = filmStorage.addFilm(film);
+
+        Film film2 = new Film("Second Movie", "Second desc", LocalDate.of(2020, 3, 2), 220);
+        film2.setMpa(new Mpa(2, null));
+        filmStorage.addFilm(film2);
         Collection<Film> films = filmStorage.getAllFilms();
-        assertEquals(2, films.size());
+        assertTrue(filmStorage.getAllFilms().stream().collect(Collectors.toMap(Film::getId, x -> x)).containsKey(filmFromDb1.getId()));
     }
 
     @Test
-    @Order(4)
     void deleteFilm() {
-        assertTrue(filmStorage.deleteFilm(filmStorage.getById(1)));
+        Film film = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
+        film.setMpa(new Mpa(1, null));
+        Film filmBromDb = filmStorage.addFilm(film);
+        assertTrue(filmStorage.deleteFilm(filmStorage.getById(filmBromDb.getId())));
     }
 
     @Test
-    @Order(5)
     void getById() {
-        assertEquals("Second Movie", filmStorage.getById(2).getName());
+        Film film = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
+        film.setMpa(new Mpa(1, null));
+        filmStorage.addFilm(film);
+
+        Film film2 = new Film("Second Movie", "Second desc", LocalDate.of(2020, 3, 2), 220);
+        film2.setMpa(new Mpa(2, null));
+        Film filmFromDb = filmStorage.addFilm(film2);
+        assertEquals("Second Movie", filmStorage.getById(filmFromDb.getId()).getName());
     }
 
     @Test
-    @Order(6)
     void testGetByWithWrongId() {
         assertNull(filmStorage.getById(-3));
     }
 
     @Test
-    @Order(7)
     void getTopFilms() {
         User user = new User("a@first.user", "login1", LocalDate.of(2020, 1, 1));
         user.setName("name1");
-        userStorage.addUser(user);
+        User userFromDb1 = userStorage.addUser(user);
         User user2 = new User("b@second.user", "login2", LocalDate.of(2020, 2, 2));
         user2.setName("name2");
-        userStorage.addUser(user2);
-        long user1Id = userStorage.getAllUsers().stream().filter(x -> x.getName().equals("name1")).findFirst().get().getId();
-        long user2Id = userStorage.getAllUsers().stream().filter(x -> x.getName().equals("name2")).findFirst().get().getId();
+        User userFromDb2 = userStorage.addUser(user2);
+        long user1Id = userFromDb1.getId();
+        long user2Id = userFromDb2.getId();
 
         Film film = new Film("First Movie", "First desc", LocalDate.of(2019, 3, 1), 120);
         film.setMpa(new Mpa(1, null));
@@ -110,10 +125,10 @@ class FilmDbStorageTest {
 
         film.setGenres(genresFilm1);
         film2.setGenres(genresFilm2);
-        filmStorage.addFilm(film);
-        filmStorage.addFilm(film2);
-        long film1Id = filmStorage.getAllFilms().stream().filter(x -> x.getName().equals("First Movie")).findFirst().get().getId();
-        long film2Id = filmStorage.getAllFilms().stream().filter(x -> x.getName().equals("Second Movie")).findFirst().get().getId();
+        Film filmFromDb1 = filmStorage.addFilm(film);
+        Film filmFromDb2 = filmStorage.addFilm(film2);
+        long film1Id = filmFromDb1.getId();
+        long film2Id = filmFromDb2.getId();
 
         filmService.addLike(user1Id, film2Id);
         filmService.addLike(user2Id, film2Id);
