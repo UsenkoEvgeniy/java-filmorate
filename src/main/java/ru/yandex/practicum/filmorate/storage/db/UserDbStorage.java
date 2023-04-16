@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Repository("UserDbStorage")
+@Primary
 @Slf4j
 public class UserDbStorage implements UserStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;

@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class EventDbStorageTest {
 
@@ -43,14 +43,14 @@ class EventDbStorageTest {
         user.setName("name");
         User user2 = new User("test2@mail.ru", "test2", LocalDate.of(2003, 12, 12));
         user2.setName("name2");
-        userService.addUser(user);
-        userService.addUser(user2);
-        userId = userService.getAllUsers().stream().filter(x -> x.getName().equals("name")).findFirst().get().getId();
-        user2Id = userService.getAllUsers().stream().filter(x -> x.getName().equals("name2")).findFirst().get().getId();
+        User userFromDb1 = userService.addUser(user);
+        User userFromDb2 = userService.addUser(user2);
+        userId = userFromDb1.getId();
+        user2Id = userFromDb2.getId();
         Film film = new Film("First Movie", "First desc", LocalDate.of(2020, 3, 1), 120);
         film.setMpa(new Mpa(1, null));
-        filmService.addFilm(film);
-        filmId = filmService.getAllFilms().stream().filter(x -> x.getName().equals("First Movie")).findFirst().get().getId();
+        Film filmFromDb1 = filmService.addFilm(film);
+        filmId = filmFromDb1.getId();
     }
 
     @Test
