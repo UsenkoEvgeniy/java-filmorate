@@ -89,20 +89,18 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAllUsers() {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l.film_id " +
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
                 "FROM users u " +
-                "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
-                "LEFT JOIN film_likes l ON u.user_id=l.user_id";
+                "LEFT JOIN user_friends f ON u.user_id=f.user_id ";
         log.debug("Getting all users");
         return jdbcTemplate.query(sql, new UserWithFriendsMapper());
     }
 
     @Override
     public User getById(long id) {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status, l.film_id " +
+        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
                 "FROM users u " +
                 "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
-                "LEFT JOIN film_likes l ON u.user_id=l.user_id " +
                 "WHERE u.user_id = :id";
         List<User> userList = jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
         if (userList.isEmpty()) {
