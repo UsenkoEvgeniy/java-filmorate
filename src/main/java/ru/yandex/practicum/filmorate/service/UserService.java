@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,8 +25,8 @@ public class UserService {
     private final FilmService filmService;
     private final EventService eventService;
 
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, @Lazy FilmService filmService) {
-    public UserService(@Qualifier("UserDbStorage")UserStorage userStorage, EventService eventService) {
+    public UserService(@Qualifier("UserDbStorage")UserStorage userStorage, EventService eventService,
+                       @Lazy FilmService filmService) {
         this.userStorage = userStorage;
         this.filmService = filmService;
         this.eventService = eventService;
