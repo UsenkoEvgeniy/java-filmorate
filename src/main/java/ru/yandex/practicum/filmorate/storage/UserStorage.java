@@ -17,4 +17,8 @@ public interface UserStorage {
     boolean deleteUser(User user);
 
     Collection<Film> getRecommendations(long id);
+
+    Collection<User> getCommonFriendsList(long userId, long friendId);
+
+    Collection<User> getFriendsList(long userId);
 }

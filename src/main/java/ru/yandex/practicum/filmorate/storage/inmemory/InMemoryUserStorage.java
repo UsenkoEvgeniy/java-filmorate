@@ -62,4 +62,14 @@ public class InMemoryUserStorage implements UserStorage {
     public Collection<Film> getRecommendations(long id) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public Collection<User> getCommonFriendsList(long userId, long friendId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<User> getFriendsList(long userId) {
+        throw new UnsupportedOperationException();
+    }
 }
