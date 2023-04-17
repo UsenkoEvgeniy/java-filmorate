@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,12 +13,15 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Repository
 public class ReviewDbStorage implements ReviewStorage {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public ReviewDbStorage(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public List<Review> getReviews() {
@@ -102,14 +104,15 @@ public class ReviewDbStorage implements ReviewStorage {
                 "LEFT JOIN REVIEW_LIKES rl ON r.id = rl.review_id \n" +
                 "WHERE r.film_id = ? " +
                 "GROUP BY r.id\n" +
-                "ORDER BY useful DESC ";
-        SqlRowSet reviewRows = jdbcTemplate.queryForRowSet(sqlUseful, filmId);
+                "ORDER BY useful DESC " +
+                "LIMIT ?";
+        SqlRowSet reviewRows = jdbcTemplate.queryForRowSet(sqlUseful, filmId, count);
         List<Review> reviewList = new ArrayList<>();
         while (reviewRows.next()) {
             Review review = convertSql(reviewRows);
             reviewList.add(review);
         }
-        return reviewList.stream().limit(count).collect(Collectors.toList());
+        return reviewList;
     }
 
     @Override
