@@ -272,6 +272,7 @@ public class FilmDbStorage implements FilmStorage {
             sql.append(" WHERE d.director_name ILIKE :query\n");
         }
         sql.append(") ORDER BY rate DESC;");
+        log.debug("Поиск подстроки '{}' в колонках '{}'.", query, by);
         return jdbcTemplate.query(sql.toString(), mapSqlParameterSource, filmWithGenresAndLikesExtractor);
     }
 
@@ -286,6 +287,7 @@ public class FilmDbStorage implements FilmStorage {
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
                 .addValue("uid1", uid)
                 .addValue("uid2", fid);
+        log.debug("Поиск общих фильмов для пользователей с id: {}, {}.", uid, fid);
         return jdbcTemplate.query(sql,
                 mapSqlParameterSource,
                 filmWithGenresAndLikesExtractor);
