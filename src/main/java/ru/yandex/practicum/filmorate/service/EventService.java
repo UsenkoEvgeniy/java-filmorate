@@ -31,10 +31,9 @@ public class EventService {
     public Collection<Event> getUserEvents(long id) {
         User user = userStorage.getById(id);
         if (user == null) {
-            log.warn("User with id {} doesn't exist", id);
             throw new UserNotFoundException(Long.toString(id));
         }
+        log.debug("Getting user id:{} events", id);
         return eventStorage.getUserEvents(user.getId());
     }
-
 }
