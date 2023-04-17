@@ -34,6 +34,9 @@ import static ru.yandex.practicum.filmorate.storage.db.FilmDbStorage.filmWithGen
 @Slf4j
 public class UserDbStorage implements UserStorage {
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private static final String SELECT_ALL_USERS = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
+            "FROM users u " +
+            "LEFT JOIN user_friends f ON u.user_id = f.user_id ";
 
     public UserDbStorage(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -69,13 +72,15 @@ public class UserDbStorage implements UserStorage {
     public User updateUser(User user) {
         Long id = user.getId();
         try {
-            jdbcTemplate.queryForObject("SELECT user_id FROM users WHERE user_id=:id", Map.of("id", id), Long.class);
+            jdbcTemplate.queryForObject("SELECT user_id FROM users WHERE user_id = :id",
+                    Map.of("id", id), Long.class);
             log.debug("Updating user with id: " + id);
         } catch (IncorrectResultSizeDataAccessException e) {
             log.warn("There is no user in the database with id: " + id);
             throw new UserNotFoundException("Wrong id");
         }
-        String sql = "UPDATE users SET email=:email, login=:login, name=:name, birthday=:birthday WHERE user_id=:id";
+        String sql = "UPDATE users SET email = :email, login = :login, name = :name, birthday = :birthday " +
+                "WHERE user_id = :id";
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
                 .addValue("id", user.getId())
                 .addValue("email", user.getEmail())
@@ -100,19 +105,13 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAllUsers() {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
-                "FROM users u " +
-                "LEFT JOIN user_friends f ON u.user_id=f.user_id ";
         log.debug("Getting all users");
-        return jdbcTemplate.query(sql, new UserWithFriendsMapper());
+        return jdbcTemplate.query(SELECT_ALL_USERS, new UserWithFriendsMapper());
     }
 
     @Override
     public User getById(long id) {
-        String sql = "SELECT u.user_id, email, login, name, birthday, friend_id, status " +
-                "FROM users u " +
-                "LEFT JOIN user_friends f ON u.user_id=f.user_id " +
-                "WHERE u.user_id = :id";
+        String sql = SELECT_ALL_USERS + " WHERE u.user_id = :id";
         List<User> userList = jdbcTemplate.query(sql, Map.of("id", id), new UserWithFriendsMapper());
         if (userList.isEmpty()) {
             log.warn("Nof found user for id: " + id);
@@ -164,10 +163,31 @@ public class UserDbStorage implements UserStorage {
         String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id IN (" +
                 "SELECT f.film_id FROM film_likes AS f " +
                 "JOIN (SELECT f3.user_id FROM film_likes AS f2 " +
-                "LEFT JOIN film_likes AS f3 ON f2.film_id=f3.film_id WHERE f2.user_id=:id AND f3.user_id<>f2.user_id " +
-                "GROUP BY f3.user_id ORDER BY COUNT(f3.film_id) DESC LIMIT 1) AS f1 ON f.user_id=f1.user_id " +
-                "WHERE f.film_id NOT IN (SELECT film_id FROM film_likes WHERE user_id=:id))";
+                "LEFT JOIN film_likes AS f3 ON f2.film_id = f3.film_id WHERE f2.user_id = :id AND f3.user_id <> f2.user_id " +
+                "GROUP BY f3.user_id ORDER BY COUNT(f3.film_id) DESC LIMIT 1) AS f1 ON f.user_id = f1.user_id " +
+                "WHERE f.film_id NOT IN (SELECT film_id FROM film_likes WHERE user_id = :id))";
         log.debug("Getting recommendation films for user " + id);
         return jdbcTemplate.query(sql, Map.of("id", id), filmWithGenresAndLikesExtractor);
+    }
+
+    @Override
+    public Collection<User> getCommonFriendsList(long userId, long friendId) {
+        String sql = SELECT_ALL_USERS + "WHERE u.user_id IN " +
+                "(SELECT friend_id FROM user_friends WHERE user_id = :userId " +
+                "INTERSECT " +
+                "SELECT friend_id FROM user_friends WHERE user_id = :friendId)";
+        SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("friendId", friendId);
+        log.debug("Getting common friends list for user {} and friend {}", userId, friendId);
+        return jdbcTemplate.query(sql, sqlParameterSource, new UserWithFriendsMapper());
+    }
+
+    @Override
+    public Collection<User> getFriendsList(long userId) {
+        String sql = SELECT_ALL_USERS + "WHERE u.user_id IN " +
+                "(SELECT friend_id FROM user_friends WHERE user_id = :userId)";
+        log.debug("Get friend list for user {}", userId);
+        return jdbcTemplate.query(sql, Map.of("userId", userId), new UserWithFriendsMapper());
     }
 }

@@ -41,12 +41,12 @@ public class FilmDbStorage implements FilmStorage {
             "release_date, duration, rate, f.film_id, m.mpa_id, m.mpa_name, g.genre_id, g.name, l.user_id, " +
             "d.director_id, d.director_name " +
             "FROM film AS f " +
-            "LEFT JOIN mpa AS m ON f.mpa_id=m.mpa_id " +
-            "LEFT JOIN film_genre AS fg ON f.film_id=fg.film_id " +
-            "LEFT JOIN genre AS g ON fg.genre_id=g.genre_id " +
-            "LEFT JOIN film_likes AS l ON f.film_id=l.film_id " +
-            "LEFT JOIN director_film AS fd ON f.film_id=fd.film_id " +
-            "LEFT JOIN director AS d ON fd.director_id=d.director_id";
+            "LEFT JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
+            "LEFT JOIN film_genre AS fg ON f.film_id = fg.film_id " +
+            "LEFT JOIN genre AS g ON fg.genre_id = g.genre_id " +
+            "LEFT JOIN film_likes AS l ON f.film_id = l.film_id " +
+            "LEFT JOIN director_film AS fd ON f.film_id = fd.film_id " +
+            "LEFT JOIN director AS d ON fd.director_id = d.director_id";
     static final ResultSetExtractor<List<Film>> filmWithGenresAndLikesExtractor = rs -> {
         Map<Long, Film> filmMap = new LinkedHashMap<>();
         Film film;
@@ -137,13 +137,14 @@ public class FilmDbStorage implements FilmStorage {
     public Film updateFilm(Film film) {
         long id = film.getId();
         try {
-            jdbcTemplate.queryForObject("SELECT film_id FROM film WHERE film_id=:id", Map.of("id", id), Long.class);
+            jdbcTemplate.queryForObject("SELECT film_id FROM film WHERE film_id = :id",
+                    Map.of("id", id), Long.class);
         } catch (IncorrectResultSizeDataAccessException e) {
             log.warn("There is no film in the database with id: " + id);
             throw new UserNotFoundException("Wrong id");
         }
-        String sql = "UPDATE film SET film_id=:id, name=:name, description=:desc, release_date=:release_date, " +
-                "duration=:duration, rate=:rate, mpa_id=:mpa WHERE film_id=:id";
+        String sql = "UPDATE film SET film_id = :id, name = :name, description = :desc, release_date = :release_date, " +
+                "duration = :duration, rate = :rate, mpa_id = :mpa WHERE film_id = :id";
         SqlParameterSource sqlParameterSource = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("desc", film.getDescription())
@@ -155,7 +156,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, sqlParameterSource);
         log.debug("Update film with id: " + id);
         Set<Long> likes = film.getLikes();
-        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id=:id", Map.of("id", id));
+        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = :id", Map.of("id", id));
         if (likes != null && !likes.isEmpty()) {
             sql = "INSERT INTO film_likes (film_id, user_id) VALUES(:id, :user)";
             log.debug("Updating likes for film with id: " + id);
@@ -226,7 +227,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getById(long id) {
-        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id=:id";
+        String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE f.film_id = :id";
         log.debug("Getting film by id: " + id);
         List<Film> film = jdbcTemplate.query(sql, Map.of("id", id), filmWithGenresAndLikesExtractor);
         if (film.isEmpty()) {
@@ -238,7 +239,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy) {
-        String sortSql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE d.director_id=:id ";
+        String sortSql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + " WHERE d.director_id = :id ";
         if (sortBy.equalsIgnoreCase("likes")) {
             sortSql += " ORDER BY rate DESC";
         } else if (sortBy.equalsIgnoreCase("year")) {
@@ -281,7 +282,7 @@ public class FilmDbStorage implements FilmStorage {
         String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS +
                 " WHERE f.film_id IN (" +
                     "SELECT film_id FROM film_likes WHERE user_id = :uid1 " +
-                    "INTERSECT  " +
+                    "INTERSECT " +
                     "SELECT film_id FROM film_likes WHERE user_id = :uid2 " +
                  ") ORDER BY rate DESC;";
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()

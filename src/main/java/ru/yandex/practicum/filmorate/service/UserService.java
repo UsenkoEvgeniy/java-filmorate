@@ -13,8 +13,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,15 +79,13 @@ public class UserService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
         log.debug("Get common friend for friend: {} and user: {}", friend, user);
-        Set<Long> commonFriends = new HashSet<>(user.getFriends().keySet());
-        commonFriends.retainAll(friend.getFriends().keySet());
-        return commonFriends.stream().map(userStorage::getById).collect(Collectors.toList());
+        return userStorage.getCommonFriendsList(userId, friendId);
     }
 
     public Collection<User> getFriendsList(long userId) {
         User user = getUserById(userId);
         log.debug("Get list of friends for user {}", user);
-        return user.getFriends().keySet().stream().map(userStorage::getById).collect(Collectors.toList());
+        return userStorage.getFriendsList(userId);
     }
 
     public User getUserById(long id) {
