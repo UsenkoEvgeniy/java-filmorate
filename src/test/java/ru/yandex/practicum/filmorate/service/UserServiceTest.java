@@ -65,6 +65,6 @@ class UserServiceTest {
         Throwable thrown = assertThrows(UserNotFoundException.class, () -> {
             userService.getRecommendation(-1);
         });
-        assertEquals("UserID: User with id " + -1 + " is not found", thrown.getMessage());
+        assertEquals("UserID: " + -1, thrown.getMessage());
     }
 }

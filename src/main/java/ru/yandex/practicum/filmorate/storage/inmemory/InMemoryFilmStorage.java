@@ -80,4 +80,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Collection<Film> getCommonFilms(long uid, long fid) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean isExist(Long id) {
+        return database.get(id) != null;
+    }
 }

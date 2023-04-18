@@ -37,8 +37,8 @@ public class ReviewService {
         if (review.getUseful() == null) {
             review.setUseful(0);
         }
-        userService.getUserById(review.getUserId());
-        filmService.getFilmById(review.getFilmId());
+        userService.isExist(review.getUserId());
+        filmService.isExist(review.getFilmId());
         reviewDbStorage.addReview(review);
         eventService.addEvent(Event.builder()
                 .userId(review.getUserId())
@@ -52,8 +52,8 @@ public class ReviewService {
     }
 
     public Review updateReview(Review review) {
-        userService.getUserById(review.getUserId());
-        filmService.getFilmById(review.getFilmId());
+        userService.isExist(review.getUserId());
+        filmService.isExist(review.getFilmId());
         log.debug("Review updated");
         Review reviewUpdate = reviewDbStorage.updateReview(review);
         eventService.addEvent(Event.builder()
