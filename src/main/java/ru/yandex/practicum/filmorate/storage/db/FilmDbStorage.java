@@ -293,4 +293,11 @@ public class FilmDbStorage implements FilmStorage {
                 mapSqlParameterSource,
                 filmWithGenresAndLikesExtractor);
     }
+
+    @Override
+    public boolean isExist(Long id) {
+        String sql = "SELECT EXISTS(SELECT * FROM film WHERE film_id = :id)";
+        log.debug("Checking existence of film with id {}", id);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Map.of("id", id), Boolean.class));
+    }
 }

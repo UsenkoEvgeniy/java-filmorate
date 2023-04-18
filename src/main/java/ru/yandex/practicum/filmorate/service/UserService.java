@@ -42,8 +42,8 @@ public class UserService {
 
     public void addFriend(long userId, long friendId) {
         User user = getUserById(userId);
-        User friend = getUserById(friendId);
-        log.debug("Adding friend: {} to user: {}", friend, user);
+        isExist(friendId);
+        log.debug("Adding friend: {} to user: {}", friendId, user);
         user.getFriends().put(friendId, "Requested");
         userStorage.updateUser(user);
         eventService.addEvent(Event.builder()
@@ -59,8 +59,8 @@ public class UserService {
 
     public void removeFriend(long userId, long friendId) {
         User user = getUserById(userId);
-        User friend = getUserById(friendId);
-        log.debug("Removing friend: {} from user: {}", friend, user);
+        isExist(friendId);
+        log.debug("Removing friend: {} from user: {}", friendId, user);
         user.getFriends().remove(friendId);
         userStorage.updateUser(user);
         eventService.addEvent(Event.builder()
@@ -104,11 +104,17 @@ public class UserService {
     }
 
     public Collection<Film> getRecommendation(long id) {
-        if (userStorage.getById(id) == null) {
-            log.warn("User with id {} doesn't exist", id);
-            throw new UserNotFoundException("User with id " + id + " is not found");
-        }
+        isExist(id);
         log.debug("Getting recommendation films for user " + id);
         return userStorage.getRecommendations(id);
+    }
+
+    public void isExist(Long id) {
+        log.debug("Checking is user with id {} exists", id);
+        boolean isExists = userStorage.isExist(id);
+        if (!isExists) {
+            log.warn("User with id {} doesn't exist", id);
+            throw new UserNotFoundException(Long.toString(id));
+        }
     }
 }

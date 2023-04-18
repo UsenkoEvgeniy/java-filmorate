@@ -190,4 +190,11 @@ public class UserDbStorage implements UserStorage {
         log.debug("Get friend list for user {}", userId);
         return jdbcTemplate.query(sql, Map.of("userId", userId), new UserWithFriendsMapper());
     }
+
+    @Override
+    public boolean isExist(Long id) {
+        String sql = "SELECT EXISTS(SELECT * FROM users WHERE user_id = :id)";
+        log.debug("Checking existence of user with id {}", id);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Map.of("id", id), Boolean.class));
+    }
 }

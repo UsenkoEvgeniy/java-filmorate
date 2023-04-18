@@ -72,4 +72,9 @@ public class InMemoryUserStorage implements UserStorage {
     public Collection<User> getFriendsList(long userId) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean isExist(Long id) {
+        return database.get(id) != null;
+    }
 }

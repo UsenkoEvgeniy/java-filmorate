@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.event.Event;
 import ru.yandex.practicum.filmorate.model.event.EventOperations;
 import ru.yandex.practicum.filmorate.model.event.EventTypes;
@@ -43,9 +42,9 @@ public class FilmService {
     }
 
     public void addLike(long userId, long filmId) {
-        User user = userService.getUserById(userId);
+        userService.isExist(userId);
         Film film = getFilmById(filmId);
-        log.debug("Adding like to film: {} from user: {}", film, user);
+        log.debug("Adding like to film: {} from user: {}", film, userId);
         film.getLikes().add(userId);
         filmStorage.updateFilm(film);
         eventService.addEvent(Event.builder()
@@ -58,12 +57,11 @@ public class FilmService {
     }
 
     public void removeLike(long userId, long filmId) {
-        User user = userService.getUserById(userId);
+        userService.isExist(userId);
         Film film = getFilmById(filmId);
-        log.debug("Removing like to film: {} from user: {}", film, user);
+        log.debug("Removing like to film: {} from user: {}", film, userId);
         film.getLikes().remove(userId);
         filmStorage.updateFilm(film);
-
         eventService.addEvent(Event.builder()
                 .userId(userId)
                 .entityId(filmId)
@@ -105,8 +103,17 @@ public class FilmService {
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
-        long uid = userService.getUserById(userId).getId();
-        long fid = userService.getUserById(friendId).getId();
-        return filmStorage.getCommonFilms(uid, fid);
+        userService.isExist(userId);
+        userService.isExist(friendId);
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
+
+    public void isExist(Long id) {
+        log.debug("Checking is film with id {} exists", id);
+        boolean isExists = filmStorage.isExist(id);
+        if (!isExists) {
+            log.warn("Film with id {} doesn't exist", id);
+            throw new FilmNotFoundException(Long.toString(id));
+        }
     }
 }
