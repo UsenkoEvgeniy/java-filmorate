@@ -10,7 +10,6 @@ import java.util.Map;
 @Slf4j
 public class RecommendationService {
     public Map<Long, Double> getRecommendation(Map<Long , Map<Long, Double>> marks, Long uid) {
-        Map<Long, Double> recommendations = new HashMap<>();
         Map<Long, Map <Long, Double>> diff = new HashMap<>();
         Map<Long, Map <Long, Integer>> freq = new HashMap<>();
 
@@ -47,6 +46,10 @@ public class RecommendationService {
         Map<Long, Double> userMarks = marks.get(uid);
         Map<Long, Double> uPred = new HashMap<>();
         Map<Long, Integer> uFreq = new HashMap<>();
+        for (Long fid : diff.keySet()) {
+            uPred.put(fid, 0.0);
+            uFreq.put(fid, 0);
+        }
         for (Long j : userMarks.keySet()) {
             for (Long k : diff.keySet()) {
                 double predictedValue = diff.get(k).get(j) + userMarks.get(j);
@@ -56,20 +59,20 @@ public class RecommendationService {
             }
         }
 
-            HashMap<Long, Double> clean = new HashMap<>();
-            for (Long j : uPred.keySet()) {
-                if (uFreq.get(j) > 0) {
-                    clean.put(j, uPred.get(j) / uFreq.get(j));
-                }
+        HashMap<Long, Double> clean = new HashMap<>();
+        for (Long j : uPred.keySet()) {
+            if (uFreq.get(j) > 0) {
+                clean.put(j, uPred.get(j) / uFreq.get(j));
             }
-           /* for (Long j : InputData.items) {
-                if (e.getValue().containsKey(j)) {
-                    clean.put(j, e.getValue().get(j));
-                } else if (!clean.containsKey(j)) {
-                    clean.put(j, -1.0);
-                }
-            }*/
+        }
+       for (Long j : diff.keySet()) {
+            if (userMarks.containsKey(j)) {
+                clean.put(j, userMarks.get(j));
+            } else if (!clean.containsKey(j)) {
+                clean.put(j, -1.0);
+            }
+        }
 
-        return recommendations;
+        return clean;
     }
 }

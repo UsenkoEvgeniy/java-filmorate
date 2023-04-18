@@ -16,7 +16,7 @@ public class RecommendationServiceTest {
     void fillMatricesTest() {
         recommendationService = new RecommendationService();
         fillMarks();
-        recommendationService.getRecommendation(marks, 1L);
+        recommendationService.getRecommendation(marks, 3L);
     }
 
     private void fillMarks() {
