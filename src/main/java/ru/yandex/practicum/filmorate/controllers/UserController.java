@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.event.Event;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -21,9 +24,12 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
+    private final EventService eventService;
 
-    public UserController(UserService userService) {
+
+    public UserController(UserService userService, EventService eventService) {
         this.userService = userService;
+        this.eventService = eventService;
     }
 
     @PostMapping
@@ -38,7 +44,7 @@ public class UserController {
         return userService.updateUser(user);
     }
 
-   @GetMapping
+    @GetMapping
     public Collection<User> getAllUsers() {
         log.info("Get request for users");
         return userService.getAllUsers();
@@ -51,13 +57,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend (@PathVariable long id, @PathVariable long friendId) {
+    public void addFriend(@PathVariable long id, @PathVariable long friendId) {
         log.info("Put request to add friend id: {} friendId: {}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void removeFriend (@PathVariable long id, @PathVariable long friendId) {
+    public void removeFriend(@PathVariable long id, @PathVariable long friendId) {
         log.info("Delete request to remove friend id: {} friendId: {}", id, friendId);
         userService.removeFriend(id, friendId);
     }
@@ -72,5 +78,23 @@ public class UserController {
     public Collection<User> getCommonFriendsList(@PathVariable Integer id, @PathVariable Integer otherId) {
         log.info("Get request for common friends userId: {} friendId: {}", id, otherId);
         return userService.getCommonFriendsList(id, otherId);
+    }
+
+    @DeleteMapping("/{userId}")
+    public void deleteUser(@PathVariable long userId) {
+        log.info("Delete request to remove user with id {}", userId);
+        userService.deleteUser(userId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<Event> getUserEvents(@PathVariable Long id) {
+        log.info("Get request for userId {} events", id);
+        return eventService.getUserEvents(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public Collection<Film> getRecommendations(@PathVariable long id) {
+        log.info("Get request for recommendation for user with id: {} ", id);
+        return userService.getRecommendation(id);
     }
 }

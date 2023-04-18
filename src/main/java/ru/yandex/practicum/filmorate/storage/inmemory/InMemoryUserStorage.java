@@ -3,13 +3,14 @@ package ru.yandex.practicum.filmorate.storage.inmemory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
 
-@Repository
+@Repository("inMemoryUserStorage")
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private final HashMap<Long, User> database = new HashMap<>();
@@ -55,5 +56,25 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean deleteUser(User user) {
         return database.remove(user.getId()) != null;
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long id) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<User> getCommonFriendsList(long userId, long friendId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<User> getFriendsList(long userId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isExist(Long id) {
+        return database.get(id) != null;
     }
 }

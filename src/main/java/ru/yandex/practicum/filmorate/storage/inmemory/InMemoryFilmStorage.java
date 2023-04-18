@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-@Repository("inMemory")
+@Repository("inMemoryFilmStorage")
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> database = new HashMap<>();
@@ -49,7 +49,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getTopFilms(int size) {
+    public Collection<Film> getTopFilms(int size, int genreId, int year) {
         return getAllFilms().stream()
                 .sorted(Comparator.comparingInt(Film::getRate).reversed())
                 .limit(size)
@@ -64,5 +64,25 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film getById(long id) {
         return database.get(id);
+    }
+
+    @Override
+    public Collection<Film> getFilmsForDirectorSorted(Long id, String sortBy) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Film> getSearchResult(String query, String by) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(long uid, long fid) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isExist(Long id) {
+        return database.get(id) != null;
     }
 }
