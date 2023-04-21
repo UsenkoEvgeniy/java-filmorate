@@ -134,7 +134,7 @@ class FilmDbStorageTest {
         filmService.addRate(user2Id, film2Id, 4);
         filmService.addRate(user1Id, film1Id, 8);
 
-        assertEquals(filmService.getTopFilms(2, genreStorage.getById(1).get().getId(), 0).size(), 1, "sizes are diff");
+        assertEquals(filmService.getTopFilms(2, genreStorage.getById(1).get().getId(), 0).size(), 2, "sizes are diff");
         assertEquals(new ArrayList<>(filmService.getTopFilms(2, genreStorage.getById(2).get().getId(), 0))
                 .get(0).getName(), "First Movie", "names are diff");
         assertEquals(new ArrayList<>(filmService.getTopFilms(2, 0, 2019))

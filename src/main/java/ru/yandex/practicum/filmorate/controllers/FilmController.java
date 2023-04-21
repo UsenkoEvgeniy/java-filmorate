@@ -44,8 +44,8 @@ public class FilmController {
         return filmService.getFilmById(id);
     }
 
-    @PutMapping("/{id}/rate/{userId}/{rate}")
-    public void addRate(@PathVariable Long id, @PathVariable Long userId, @PathVariable Integer rate) {
+    @PutMapping("/{id}/rate/{userId}")
+    public void addRate(@PathVariable Long id, @PathVariable Long userId, @RequestParam Integer rate) {
         log.info("Put request to add rate {} to film: {} from user: {}", rate, id, userId);
         filmService.addRate(userId, id, rate);
     }

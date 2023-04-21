@@ -68,14 +68,12 @@ public class FilmDbStorage implements FilmStorage {
             if (rs.getInt("genre_id") != 0) {
                 genres.add(genreMapper.mapRow(rs, 0));
             }
-            //замена set --> map
             Map<Long, Integer> rates = film.getRates();
             Long userId = rs.getLong("user_id");
             Integer userRate = rs.getInt("film_rate");
             if (userId != 0 && userRate != 0) {
                 rates.put(userId, userRate);
             }
-            //
             Set<Director> directors = film.getDirectors();
             if (rs.getLong("director_id") != 0) {
                 directors.add(directorMapper.mapRow(rs, 0));
@@ -97,8 +95,8 @@ public class FilmDbStorage implements FilmStorage {
                 .addValue("desc", film.getDescription())
                 .addValue("release_date", film.getReleaseDate())
                 .addValue("duration", film.getDuration())
-                .addValue("rate", Math.round((film.getRates().values().stream()
-                        .reduce(0, Integer::sum).doubleValue() / film.getRates().size()) * 10) / 10.0)
+                .addValue("rate", film.getRates().values().stream().mapToInt(x -> x)
+                        .average().orElse(0.0) * 10 / 10.0)
                 .addValue("mpa", film.getMpa().getId());
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sql, sqlParameterSource, keyHolder);
@@ -109,9 +107,11 @@ public class FilmDbStorage implements FilmStorage {
             log.debug("Update rates for film with id: " + id);
             sql = "INSERT INTO film_rates (film_id, user_id, film_rate) VALUES (:id, :user, :rate)";
             SqlParameterSource[] params = rates.entrySet().stream()
-                    .map(mapEntry -> new MapSqlParameterSource().addValue("user", mapEntry.getKey())
+                    .map(mapEntry -> new MapSqlParameterSource()
+                            .addValue("user", mapEntry.getKey())
                             .addValue("rate", mapEntry.getValue())
-                            .addValue("id", id)).toArray(SqlParameterSource[]::new);
+                            .addValue("id", id))
+                    .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
         }
         Set<Genre> genres = film.getGenres();
@@ -119,7 +119,8 @@ public class FilmDbStorage implements FilmStorage {
             log.debug("Update genres for film with id: " + id);
             sql = "INSERT INTO film_genre (film_id, genre_id) VALUES (:id, :genre)";
             SqlParameterSource[] params = genres.stream()
-                    .map(genre -> new MapSqlParameterSource().addValue("genre", genre.getId())
+                    .map(genre -> new MapSqlParameterSource()
+                            .addValue("genre", genre.getId())
                             .addValue("id", id))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
@@ -129,7 +130,8 @@ public class FilmDbStorage implements FilmStorage {
             log.debug("Update directors for film with id: " + id);
             sql = "INSERT INTO director_film (film_id, director_id) VALUES (:id, :director_id)";
             SqlParameterSource[] params = directors.stream()
-                    .map(director -> new MapSqlParameterSource().addValue("id", id)
+                    .map(director -> new MapSqlParameterSource()
+                            .addValue("id", id)
                             .addValue("director_id", director.getId()))
                     .toArray(SqlParameterSource[]::new);
             jdbcTemplate.batchUpdate(sql, params);
@@ -155,8 +157,8 @@ public class FilmDbStorage implements FilmStorage {
                 .addValue("name", film.getName())
                 .addValue("release_date", film.getReleaseDate())
                 .addValue("duration", film.getDuration())
-                .addValue("rate", Math.round((film.getRates().values().stream()
-                        .reduce(0, Integer::sum).doubleValue() / film.getRates().size()) * 10) / 10.0)
+                .addValue("rate", film.getRates().values().stream().mapToInt(x -> x)
+                        .average().orElse(0.0) * 10 / 10.0)
                 .addValue("mpa", film.getMpa().getId());
         jdbcTemplate.update(sql, sqlParameterSource);
         log.debug("Update film with id: " + id);
@@ -218,7 +220,7 @@ public class FilmDbStorage implements FilmStorage {
         if (year != 0 && genreId == 0) {
             limitTop += " WHERE EXTRACT(YEAR FROM f.release_date) = :year";
         }
-        limitTop += " ORDER BY rate DESC LIMIT :size) AND rate >= 6 ORDER BY rate DESC";
+        limitTop += " ORDER BY rate DESC LIMIT :size) ORDER BY rate DESC";
         return jdbcTemplate.query(SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS + limitTop, keys,
                 filmWithGenresAndLikesExtractor);
     }
