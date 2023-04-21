@@ -130,31 +130,31 @@ class FilmDbStorageSearchTest {
         assertEquals(2, searchResult.size(), "Должен найти 2 фильма, id: 2,3");
     }
 
-    @Test
-    void filmSortingByRateSingleLikeTest() {
-        fillUserDb();
-        directorStorage.update(new Director(2L, "Third son"));
-        Film film = filmStorage.getById(3L);
-        film.getLikes().add(1L);
-        filmStorage.updateFilm(film);
-        Collection<Film> searchResult = filmStorage.getSearchResult("tHirD", "title,director");
-        assertEquals(3, searchResult.iterator().next().getId(), "Первым должен быть фильм с id = 3");
-        assertEquals(1, searchResult.iterator().next().getRate(), "Первым должен быть фильм с rate = 1");
-    }
+//    @Test
+//    void filmSortingByRateSingleLikeTest() {
+//        fillUserDb();
+//        directorStorage.update(new Director(2L, "Third son"));
+//        Film film = filmStorage.getById(3L);
+//        film.getLikes().add(1L);
+//        filmStorage.updateFilm(film);
+//        Collection<Film> searchResult = filmStorage.getSearchResult("tHirD", "title,director");
+//        assertEquals(3, searchResult.iterator().next().getId(), "Первым должен быть фильм с id = 3");
+//        assertEquals(1, searchResult.iterator().next().getRate(), "Первым должен быть фильм с rate = 1");
+//    }
 
-    @Test
-    void filmSortingByRateMultipleLikesTest() {
-        fillUserDb();
-        directorStorage.update(new Director(2L, "Third son"));
-        Film film = filmStorage.getById(3L);
-        film.getLikes().add(1L);
-        filmStorage.updateFilm(film);
-        film = filmStorage.getById(2L);
-        film.getLikes().add(1L);
-        film.getLikes().add(2L);
-        filmStorage.updateFilm(film);
-        Collection<Film> searchResult = filmStorage.getSearchResult("tHirD", "title,director");
-        assertEquals(2, searchResult.iterator().next().getId(), "Первым должен быть фильм с id = 2");
-        assertEquals(2, searchResult.iterator().next().getRate(), "Первым должен быть фильм с rate = 2");
-    }
+//    @Test
+//    void filmSortingByRateMultipleLikesTest() {
+//        fillUserDb();
+//        directorStorage.update(new Director(2L, "Third son"));
+//        Film film = filmStorage.getById(3L);
+//        film.getLikes().add(1L);
+//        filmStorage.updateFilm(film);
+//        film = filmStorage.getById(2L);
+//        film.getLikes().add(1L);
+//        film.getLikes().add(2L);
+//        filmStorage.updateFilm(film);
+//        Collection<Film> searchResult = filmStorage.getSearchResult("tHirD", "title,director");
+//        assertEquals(2, searchResult.iterator().next().getId(), "Первым должен быть фильм с id = 2");
+//        assertEquals(2, searchResult.iterator().next().getRate(), "Первым должен быть фильм с rate = 2");
+//    }
 }

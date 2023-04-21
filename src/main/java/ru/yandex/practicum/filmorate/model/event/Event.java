@@ -18,5 +18,7 @@ public class Event {
     final EventTypes eventType;
     @NonNull
     final EventOperations operation;
+    @NonNull
+    final int filmRate;
 }
 
