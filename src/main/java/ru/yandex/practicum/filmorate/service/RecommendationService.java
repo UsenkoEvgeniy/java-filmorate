@@ -19,18 +19,18 @@ public class RecommendationService {
      * @return Map&lt;filmId, Dobule rate&gt; - расчетные занчения рейтингов для пользователя,
      *          содержит и фильмы с оценками самого пользователя
      */
-    public Map<Long, Double> getRecommendation(Map<Long, Map<Long, Double>> marks, Long uid) {
+    public Map<Long, Double> getRecommendation(Map<Long, Map<Long, Integer>> marks, Long uid) {
         Map<Long, Map <Long, Double>> diff = new HashMap<>(); //< матрица разностей оценок
         Map<Long, Map <Long, Integer>> freq = new HashMap<>(); //< матрица частоты разностей оценок
 
         //< Заполнение матриц diff, freq значениями из marks
-        for (Map<Long, Double> userMarks : marks.values()) {
-            for(Map.Entry<Long, Double> e: userMarks.entrySet()) {
+        for (Map<Long, Integer> userMarks : marks.values()) {
+            for(Map.Entry<Long, Integer> e: userMarks.entrySet()) {
                 if (!diff.containsKey(e.getKey())) {
                     diff.put(e.getKey(), new HashMap<>());
                     freq.put(e.getKey(), new HashMap<>());
                 }
-                for(Map.Entry<Long, Double> e2: userMarks.entrySet()) {
+                for(Map.Entry<Long, Integer> e2: userMarks.entrySet()) {
                     int oldCount = 0;
                     if (freq.get(e.getKey()).containsKey(e2.getKey())) {
                         oldCount = freq.get(e.getKey()).get(e2.getKey());
@@ -39,7 +39,7 @@ public class RecommendationService {
                     if (diff.get(e.getKey()).containsKey(e2.getKey())) {
                         oldDiff = diff.get(e.getKey()).get(e2.getKey());
                     }
-                    double observedDiff = e.getValue() - e2.getValue();
+                    int observedDiff = e.getValue() - e2.getValue();
                     freq.get(e.getKey()).put(e2.getKey(), oldCount + 1);
                     diff.get(e.getKey()).put(e2.getKey(), oldDiff + observedDiff);
                 }
@@ -55,7 +55,7 @@ public class RecommendationService {
             }
         }
 
-        Map<Long, Double> userMarks = marks.get(uid);
+        Map<Long, Integer> userMarks = marks.get(uid);
         Map<Long, Double> uPred = new HashMap<>();
         Map<Long, Integer> uFreq = new HashMap<>();
         for (Long fid : diff.keySet()) {
@@ -79,7 +79,7 @@ public class RecommendationService {
         }
        for (Long j : diff.keySet()) {
             if (userMarks.containsKey(j)) {
-                clean.put(j, userMarks.get(j));
+                clean.put(j, Double.valueOf(userMarks.get(j)));
             } else if (!clean.containsKey(j)) {
                 clean.put(j, -1.0);
             }
@@ -94,7 +94,7 @@ public class RecommendationService {
      * @return Map&lt;filmId, Dobule rate&gt; - расчетные занчения рейтингов для пользователя,
      *      без фильмов, которые пользователь уже оценил
      */
-    public Map<Long, Double> getRecommendationFiltered(Map<Long, Map<Long, Double>> marks, Long uid) {
+    public Map<Long, Double> getRecommendationFiltered(Map<Long, Map<Long, Integer>> marks, Long uid) {
         Map<Long, Double> filteredRecommendations = getRecommendation(marks, uid);
         filteredRecommendations.keySet().removeAll(marks.get(uid).keySet());
         return filteredRecommendations;
