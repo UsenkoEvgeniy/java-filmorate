@@ -171,6 +171,25 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    public Map<Long, Map<Long, Integer>> getFilmsRates() {
+        String sql = "SELECT user_id, film_id, film_rate FROM film_rates";
+        Map<Long, Map<Long, Integer>> rates = new HashMap<>();
+        log.debug("Получаем оценки ко всем фильмам из film_rates");
+        jdbcTemplate.getJdbcTemplate().query(sql, (rs, rowNumber) ->
+        {
+            Long fid = rs.getLong("film_id");
+            Long uid = rs.getLong("user_id");
+            Integer rate = rs.getInt("film_rate");
+            if (!rates.containsKey(uid)) {
+                rates.put(uid, new HashMap<>());
+            }
+            rates.get(uid).put(fid, rate);
+            return null;
+        });
+        return rates;
+    }
+
+    @Override
     public Collection<User> getCommonFriendsList(long userId, long friendId) {
         String sql = SELECT_ALL_USERS + "WHERE u.user_id IN " +
                 "(SELECT friend_id FROM user_friends WHERE user_id = :userId " +
