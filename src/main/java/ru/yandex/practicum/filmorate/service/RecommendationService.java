@@ -6,13 +6,24 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Класс реализующий алгоритм slope-one коллаборативной фильтрации
+ * @see "https://www.baeldung.com/java-collaborative-filtering-recommendations"
+ */
 @Service
 @Slf4j
 public class RecommendationService {
-    public Map<Long, Double> getRecommendation(Map<Long , Map<Long, Double>> marks, Long uid) {
-        Map<Long, Map <Long, Double>> diff = new HashMap<>();
-        Map<Long, Map <Long, Integer>> freq = new HashMap<>();
+    /**
+     * @param marks Map&lt;Long userId, Map&lt;filmId, Double rate&gt;&gt; содержит оценки фильмов для всех пользователей
+     * @param uid  userId пользователя, для которого осуществляется вычисление рекоммендаций
+     * @return Map&lt;filmId, Dobule rate&gt; - расчетные занчения рейтингов для пользователя,
+     *          содержит и фильмы с оценками самого пользователя
+     */
+    public Map<Long, Double> getRecommendation(Map<Long, Map<Long, Double>> marks, Long uid) {
+        Map<Long, Map <Long, Double>> diff = new HashMap<>(); //< матрица разностей оценок
+        Map<Long, Map <Long, Integer>> freq = new HashMap<>(); //< матрица частоты разностей оценок
 
+        //< Заполнение матриц diff, freq значениями из marks
         for (Map<Long, Double> userMarks : marks.values()) {
             for(Map.Entry<Long, Double> e: userMarks.entrySet()) {
                 if (!diff.containsKey(e.getKey())) {
@@ -35,6 +46,7 @@ public class RecommendationService {
             }
         }
 
+        //< усреднение значений в diff с ипользованием данных из freq
         for (Long i : diff.keySet()) {
             for (Long j : diff.get(i).keySet()) {
                 double oldValue = diff.get(i).get(j);
@@ -74,5 +86,17 @@ public class RecommendationService {
         }
 
         return clean;
+    }
+
+    /**
+     * @param marks Map&lt;Long userId, Map&lt;filmId, Double rate&gt;&gt; содержит оценки фильмов для всех пользователей
+     * @param uid userId пользователя, для которого осуществляется вычисление рекоммендаций
+     * @return Map&lt;filmId, Dobule rate&gt; - расчетные занчения рейтингов для пользователя,
+     *      без фильмов, которые пользователь уже оценил
+     */
+    public Map<Long, Double> getRecommendationFiltered(Map<Long, Map<Long, Double>> marks, Long uid) {
+        Map<Long, Double> filteredRecommendations = getRecommendation(marks, uid);
+        filteredRecommendations.keySet().removeAll(marks.get(uid).keySet());
+        return filteredRecommendations;
     }
 }
