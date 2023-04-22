@@ -36,6 +36,7 @@ import static ru.yandex.practicum.filmorate.storage.db.MpaDbStorage.mpaMapper;
 @Primary
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
     static final String SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS = "SELECT f.name AS f_name, description, " +
             "release_date, duration, rate, f.film_id, m.mpa_id, m.mpa_name, g.genre_id, g.name, l.user_id, l.film_rate, " +
@@ -47,6 +48,7 @@ public class FilmDbStorage implements FilmStorage {
             "LEFT JOIN film_rates AS l ON f.film_id = l.film_id " +
             "LEFT JOIN director_film AS fd ON f.film_id = fd.film_id " +
             "LEFT JOIN director AS d ON fd.director_id = d.director_id";
+
     static final ResultSetExtractor<List<Film>> filmWithGenresAndLikesExtractor = rs -> {
         Map<Long, Film> filmMap = new LinkedHashMap<>();
         Film film;
@@ -288,9 +290,9 @@ public class FilmDbStorage implements FilmStorage {
     public Collection<Film> getCommonFilms(long uid, long fid) {
         String sql = SELECT_ALL_FILMS_WITH_GENRES_LIKES_AND_DIRECTORS +
                 " WHERE f.film_id IN (" +
-                "SELECT film_id FROM film_likes WHERE user_id = :uid1 " +
+                "SELECT film_id FROM film_rates WHERE user_id = :uid1 " +
                 "INTERSECT " +
-                "SELECT film_id FROM film_likes WHERE user_id = :uid2 " +
+                "SELECT film_id FROM film_rates WHERE user_id = :uid2 " +
                 ") ORDER BY rate DESC;";
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource()
                 .addValue("uid1", uid)
