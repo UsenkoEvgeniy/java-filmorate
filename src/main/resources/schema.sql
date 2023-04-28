@@ -5,7 +5,7 @@ DROP TABLE genre IF EXISTS CASCADE;
 DROP TABLE director IF EXISTS CASCADE;
 DROP TABLE film_genre IF EXISTS;
 DROP TABLE user_friends IF EXISTS;
-DROP TABLE film_likes IF EXISTS;
+DROP TABLE film_rates IF EXISTS;
 DROP TABLE review_likes IF EXISTS;
 DROP TABLE review IF EXISTS;
 DROP TABLE director_film IF EXISTS;
@@ -23,7 +23,7 @@ CREATE TABLE film (
     release_date DATE NOT NULL,
     duration INT NOT NULL,
     mpa_id INT,
-    rate INT,
+    rate FLOAT,
     CONSTRAINT fk_mpa_id FOREIGN KEY (mpa_id) REFERENCES mpa
 );
 
@@ -55,9 +55,10 @@ CREATE TABLE user_friends (
     CONSTRAINT fk_friends_friend_id FOREIGN KEY (friend_id) REFERENCES users ON DELETE CASCADE
 );
 
-CREATE TABLE film_likes (
+CREATE TABLE film_rates (
     film_id BIGINT,
     user_id BIGINT,
+    film_rate INTEGER CHECK(film_rate BETWEEN 1 AND 10),
     CONSTRAINT fk_likes_film_id  FOREIGN KEY (film_id) REFERENCES film ON DELETE CASCADE,
     CONSTRAINT fk_likes_user_id FOREIGN KEY (user_id) REFERENCES users ON DELETE CASCADE
 );
@@ -94,6 +95,7 @@ CREATE TABLE event  (
     entity_id BIGINT,
     time_stamp BIGINT,
     event_type VARCHAR(6),
-    operation VARCHAR(6)
+    operation VARCHAR(6),
+    rate INTEGER
 )
 
